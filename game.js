@@ -19,7 +19,28 @@ let gameOverTimer = 0;
 let menuTicker = 0;
 let bgCanvas = null;
 
-// === PICKUP LINES ===
+// === NAMES & LINES ===
+const DOUCHE_NAMES = [
+  'Brad', 'Chad', 'Thad', 'Tad', 'Blaine', 'Bryce', 'Chet', 'Tanner',
+  'Brock', 'Dax', 'Gage', 'Knox', 'Lance', 'Ryder', 'Skip', 'Trey',
+  'Zane', 'Rhett', 'Cord', 'Buck',
+];
+
+const CATCALLS = [
+  "HEY BEAUTIFUL!!",
+  "DAMN, GIRL!!",
+  "SMILE FOR ME!!",
+  "YO, WHAT'S YOUR NAME?!",
+  "HEY! HEY! HEY!!",
+  "WHERE YOU GOING?!",
+  "YOU SINGLE?!",
+  "COME HERE OFTEN?!",
+  "LET ME TAKE YOU OUT!",
+  "YOU LOOK LONELY!!",
+  "WOOOOOOO!!",
+  "HEY GORGEOUS!!",
+];
+
 const PICKUP_LINES = [
   "Do you have a map? I keep getting lost in your eyes.",
   "Are you a parking ticket? You've got FINE written all over you.",
@@ -192,6 +213,8 @@ function spawnEnemy() {
 
   const variant = Math.floor(Math.random() * 3);
   const cfg = levelConfig;
+  const name = DOUCHE_NAMES[Math.floor(Math.random() * DOUCHE_NAMES.length)];
+  const entryCatcall = CATCALLS[Math.floor(Math.random() * CATCALLS.length)];
 
   enemies.push({
     x, y, vx: 0, vy: 0,
@@ -202,8 +225,9 @@ function spawnEnemy() {
     state: 'approach',
     lineTimer: cfg.lineInterval * (0.5 + Math.random() * 0.5),
     lineInterval: cfg.lineInterval,
-    activeLine: null,
+    activeLine: { text: `${entryCatcall} -${name}`, timer: 3.0 },
     variant,
+    name,
     id: enemyIdCounter++,
     wobblePhase: Math.random() * Math.PI * 2,
     stunTimer: 0,
@@ -327,7 +351,7 @@ function update(dt) {
       if (e.lineTimer <= 0) {
         e.lineTimer = e.lineInterval + Math.random() * 1.5;
         const line = PICKUP_LINES[Math.floor(Math.random() * PICKUP_LINES.length)];
-        e.activeLine = { text: line, timer: 3.8 };
+        e.activeLine = { text: `${line} -${e.name}`, timer: 3.8 };
         playBeep(660, 0.15, 'sine', 0.07);
         if (dist < LINE_REACH_RADIUS) {
           nicole.happiness = Math.max(0, nicole.happiness - levelConfig.lineHappinessDmg);
@@ -819,7 +843,7 @@ function drawSpeechBubble(bx, by, text, alpha) {
   ctx.globalAlpha = alpha;
   const fontSize = 10;
   ctx.font = `bold ${fontSize}px Arial`;
-  const maxChars = 32;
+  const maxChars = 42;
   const displayText = text.length > maxChars ? text.slice(0, maxChars - 1) + '…' : text;
   const tw = ctx.measureText(displayText).width;
   const pad = 7;
@@ -943,7 +967,7 @@ function drawMenu() {
 
   ctx.font = 'bold 20px Arial';
   ctx.fillStyle = '#FF85A1';
-  ctx.fillText('Protect Nicole from the Pick-Up Artists!', CW / 2, CH / 2 - 108);
+  ctx.fillText('Protect Nicole from the Douchebags!', CW / 2, CH / 2 - 108);
 
   // Draw Aaron large on left
   ctx.save();
@@ -970,7 +994,7 @@ function drawMenu() {
   ctx.textAlign = 'center';
   ctx.fillText('🏹 Arrow Keys — Move', CW / 2, CH * 0.62 + 25);
   ctx.fillText('🖱 Mouse — Aim & Shoot', CW / 2, CH * 0.62 + 47);
-  ctx.fillText('Protect Nicole\'s happiness from the pick-up artists!', CW / 2, CH * 0.62 + 70);
+  ctx.fillText("Protect Nicole's happiness from the Douchebags!", CW / 2, CH * 0.62 + 70);
 
   // Pulsing start prompt
   const pulse = 0.7 + 0.3 * Math.sin(menuTicker * 3);
