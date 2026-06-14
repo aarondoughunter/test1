@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Aaron Defender — Mobile</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -13,16 +16,20 @@
       overflow: hidden;
       touch-action: none;
       font-family: 'Arial', sans-serif;
+      position: fixed;
+      inset: 0;
     }
     body {
       display: flex;
       justify-content: center;
       align-items: center;
+      width: 100dvw;
+      height: 100dvh;
     }
     #gameWrap {
       position: relative;
-      width: 100vw;
-      height: 100vh;
+      width: 100dvw;
+      height: 100dvh;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -32,8 +39,8 @@
       cursor: crosshair;
       box-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
       touch-action: none;
-      max-width: 100vw;
-      max-height: 100vh;
+      max-width: 100dvw;
+      max-height: 100dvh;
       width: auto;
       height: auto;
       aspect-ratio: 3 / 2;
@@ -61,6 +68,44 @@
     #aimKnob {
       background: rgba(255, 80, 80, 0.35);
       border: 2px solid rgba(255, 80, 80, 0.6);
+    }
+
+    /* Fullscreen toggle button */
+    #fsBtn {
+      position: fixed;
+      top: max(10px, env(safe-area-inset-top));
+      right: max(10px, env(safe-area-inset-right));
+      z-index: 50;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.5);
+      border: 1.5px solid rgba(255,215,0,0.5);
+      color: #FFD700;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    /* iOS "Add to Home Screen" tip */
+    #iosTip {
+      display: none;
+      position: fixed;
+      left: 50%;
+      bottom: max(16px, env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      z-index: 50;
+      background: rgba(0,0,0,0.8);
+      color: #FFD700;
+      border: 1px solid rgba(255,215,0,0.4);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      text-align: center;
+      max-width: 90vw;
+      white-space: nowrap;
     }
 
     /* Rotate hint for portrait phones */
@@ -98,6 +143,9 @@
   <div class="stick-base" id="aimBase"></div>
   <div class="stick-knob" id="aimKnob"></div>
 
+  <button id="fsBtn" title="Fullscreen">⛶</button>
+  <div id="iosTip">Tap Share → "Add to Home Screen" for a Safari-bar-free fullscreen view</div>
+
   <div id="rotateHint">
     <div class="icon">🔄</div>
     <div>Rotate your device to landscape<br>for the best experience</div>
@@ -105,5 +153,50 @@
 
   <script src="game.js"></script>
   <script src="mobile-controls.js"></script>
+  <script>
+    // === FULLSCREEN HANDLING ===
+    const fsBtn = document.getElementById('fsBtn');
+    const iosTip = document.getElementById('iosTip');
+
+    const isIOS = /iP(hone|ad|od)/.test(navigator.platform) ||
+      (navigator.userAgent.includes('Mac') && navigator.maxTouchPoints > 1);
+    const isStandalone = window.navigator.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches;
+
+    function canFullscreen() {
+      const el = document.documentElement;
+      return !!(el.requestFullscreen || el.webkitRequestFullscreen);
+    }
+
+    function requestFs() {
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    }
+
+    function exitFs() {
+      if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
+
+    function isFullscreen() {
+      return !!(document.fullscreenElement || document.webkitFullscreenElement);
+    }
+
+    if (isIOS && !isStandalone) {
+      // iPhone/iPad Safari doesn't support the Fullscreen API on this element,
+      // so guide the user toward the real fix: Add to Home Screen.
+      fsBtn.style.display = 'none';
+      iosTip.style.display = 'block';
+      setTimeout(() => { iosTip.style.display = 'none'; }, 6000);
+    } else if (canFullscreen()) {
+      fsBtn.addEventListener('click', () => {
+        if (isFullscreen()) exitFs();
+        else requestFs();
+      });
+    } else {
+      fsBtn.style.display = 'none';
+    }
+  </script>
 </body>
 </html>
