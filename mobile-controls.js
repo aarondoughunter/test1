@@ -70,12 +70,24 @@ function applyAimDelta(dx, dy) {
   }
 }
 
+// Only touches that land on the game canvas drive the joysticks /
+// menu taps. Touches in the margins ("outskirts") are left alone so
+// the page can still be scrolled (and Safari's toolbar can collapse).
+function isOnCanvas(touch) {
+  const rect = canvas.getBoundingClientRect();
+  return touch.clientX >= rect.left && touch.clientX <= rect.right &&
+         touch.clientY >= rect.top && touch.clientY <= rect.bottom;
+}
+
 window.addEventListener('touchstart', (e) => {
   ensureAudio();
+  let blockScroll = false;
   for (const touch of e.changedTouches) {
+    if (!isOnCanvas(touch)) continue;
+    blockScroll = true;
     const x = touch.clientX, y = touch.clientY;
 
-    // Any tap also acts as a "click" for menu / game-over / level-complete screens
+    // Any tap on the game also acts as a "click" for menu / game-over / level-complete screens
     mouse.clicked = true;
 
     if (x < window.innerWidth / 2) {
@@ -94,18 +106,21 @@ window.addEventListener('touchstart', (e) => {
       }
     }
   }
-  e.preventDefault();
+  if (blockScroll) e.preventDefault();
 }, { passive: false });
 
 window.addEventListener('touchmove', (e) => {
+  let blockScroll = false;
   for (const touch of e.changedTouches) {
     if (touch.identifier === moveStick.touchId) {
+      blockScroll = true;
       const dx = touch.clientX - moveStick.baseX;
       const dy = touch.clientY - moveStick.baseY;
       const c = clampVec(dx, dy, MAX_RADIUS);
       applyMoveDelta(c.x, c.y);
       positionKnob(moveKnob, moveStick.baseX, moveStick.baseY, c.x, c.y);
     } else if (touch.identifier === aimStick.touchId) {
+      blockScroll = true;
       const dx = touch.clientX - aimStick.baseX;
       const dy = touch.clientY - aimStick.baseY;
       const c = clampVec(dx, dy, MAX_RADIUS);
@@ -113,7 +128,7 @@ window.addEventListener('touchmove', (e) => {
       positionKnob(aimKnob, aimStick.baseX, aimStick.baseY, c.x, c.y);
     }
   }
-  e.preventDefault();
+  if (blockScroll) e.preventDefault();
 }, { passive: false });
 
 function releaseTouch(touch) {
@@ -122,20 +137,29 @@ function releaseTouch(touch) {
     moveStick.touchId = null;
     clearMoveKeys();
     hideStick(moveBase, moveKnob);
+    return true;
   } else if (touch.identifier === aimStick.touchId) {
     aimStick.active = false;
     aimStick.touchId = null;
     mouse.down = false;
     hideStick(aimBase, aimKnob);
+    return true;
   }
+  return false;
 }
 
 window.addEventListener('touchend', (e) => {
-  for (const touch of e.changedTouches) releaseTouch(touch);
-  e.preventDefault();
+  let blockScroll = false;
+  for (const touch of e.changedTouches) {
+    if (releaseTouch(touch)) blockScroll = true;
+  }
+  if (blockScroll) e.preventDefault();
 }, { passive: false });
 
 window.addEventListener('touchcancel', (e) => {
-  for (const touch of e.changedTouches) releaseTouch(touch);
-  e.preventDefault();
+  let blockScroll = false;
+  for (const touch of e.changedTouches) {
+    if (releaseTouch(touch)) blockScroll = true;
+  }
+  if (blockScroll) e.preventDefault();
 }, { passive: false });

@@ -465,8 +465,6 @@ function update(dt) {
     setTimeout(() => playBeep(659, 0.15, 'sine'), 160); // E
     setTimeout(() => playBeep(784, 0.3, 'sine'), 320); // G
   }
-
-  mouse.clicked = false;
 }
 
 function updateNonPlay(dt) {
@@ -495,7 +493,6 @@ function updateNonPlay(dt) {
   if (state === 'MENU') {
     menuTicker += dt;
   }
-  mouse.clicked = false;
 }
 
 // === BACKGROUND ===

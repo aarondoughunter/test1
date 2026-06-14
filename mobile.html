@@ -9,30 +9,36 @@
   <title>Aaron Defender — Mobile</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body {
+    html {
       background: #0a0a0a;
       width: 100%;
-      height: 100%;
-      overflow: hidden;
-      touch-action: none;
-      font-family: 'Arial', sans-serif;
-      position: fixed;
-      inset: 0;
     }
     body {
+      background: #0a0a0a;
+      width: 100%;
+      min-height: 100dvh;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      width: 100dvw;
-      height: 100dvh;
+      overflow-x: hidden;
+      touch-action: pan-y;
+      font-family: 'Arial', sans-serif;
     }
     #gameWrap {
       position: relative;
       width: 100dvw;
       height: 100dvh;
+      flex-shrink: 0;
       display: flex;
       justify-content: center;
       align-items: center;
+    }
+    /* Extra scrollable space below the game so the outskirts of the
+       page can be swiped (and Safari's toolbar can collapse) */
+    #scrollSpacer {
+      width: 100%;
+      height: 20dvh;
+      flex-shrink: 0;
     }
     canvas {
       display: block;
@@ -137,6 +143,7 @@
   <div id="gameWrap">
     <canvas id="game"></canvas>
   </div>
+  <div id="scrollSpacer"></div>
 
   <div class="stick-base" id="moveBase"></div>
   <div class="stick-knob" id="moveKnob"></div>
