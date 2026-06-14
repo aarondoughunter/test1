@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Aaron Defender — Mobile</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      background: #0a0a0a;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      touch-action: none;
+      font-family: 'Arial', sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #gameWrap {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    canvas {
+      display: block;
+      cursor: crosshair;
+      box-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+      touch-action: none;
+      max-width: 100vw;
+      max-height: 100vh;
+      width: auto;
+      height: auto;
+      aspect-ratio: 3 / 2;
+    }
+    /* Virtual joysticks */
+    .stick-base, .stick-knob {
+      position: fixed;
+      border-radius: 50%;
+      display: none;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .stick-base {
+      width: 100px;
+      height: 100px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 2px solid rgba(255, 215, 0, 0.35);
+    }
+    .stick-knob {
+      width: 50px;
+      height: 50px;
+      background: rgba(255, 215, 0, 0.35);
+      border: 2px solid rgba(255, 215, 0, 0.6);
+    }
+    #aimKnob {
+      background: rgba(255, 80, 80, 0.35);
+      border: 2px solid rgba(255, 80, 80, 0.6);
+    }
+
+    /* Rotate hint for portrait phones */
+    #rotateHint {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      color: #FFD700;
+      z-index: 100;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      font-size: 22px;
+      padding: 20px;
+    }
+    #rotateHint .icon { font-size: 60px; margin-bottom: 16px; animation: spin 2s ease-in-out infinite; }
+    @keyframes spin {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(90deg); }
+    }
+    @media (orientation: portrait) {
+      #rotateHint { display: flex; }
+    }
+  </style>
+</head>
+<body>
+  <div id="gameWrap">
+    <canvas id="game"></canvas>
+  </div>
+
+  <div class="stick-base" id="moveBase"></div>
+  <div class="stick-knob" id="moveKnob"></div>
+  <div class="stick-base" id="aimBase"></div>
+  <div class="stick-knob" id="aimKnob"></div>
+
+  <div id="rotateHint">
+    <div class="icon">🔄</div>
+    <div>Rotate your device to landscape<br>for the best experience</div>
+  </div>
+
+  <script src="game.js"></script>
+  <script src="mobile-controls.js"></script>
+</body>
+</html>

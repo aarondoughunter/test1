@@ -19,6 +19,10 @@ let gameOverTimer = 0;
 let menuTicker = 0;
 let bgCanvas = null;
 
+// Overridden by mobile-controls.js on touch devices
+let IS_MOBILE = false;
+let controlHint = 'Click or Press Enter';
+
 // === NAMES & LINES ===
 const DOUCHE_NAMES = [
   'Brad', 'Chad', 'Thad', 'Tad', 'Blaine', 'Bryce', 'Chet', 'Tanner',
@@ -992,8 +996,13 @@ function drawMenu() {
   ctx.fillStyle = '#aaa';
   ctx.font = '15px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('🏹 Arrow Keys — Move', CW / 2, CH * 0.62 + 25);
-  ctx.fillText('🖱 Mouse — Aim & Shoot', CW / 2, CH * 0.62 + 47);
+  if (IS_MOBILE) {
+    ctx.fillText('👈 Left side — Move', CW / 2, CH * 0.62 + 25);
+    ctx.fillText('👉 Right side — Aim & Shoot', CW / 2, CH * 0.62 + 47);
+  } else {
+    ctx.fillText('🏹 Arrow Keys — Move', CW / 2, CH * 0.62 + 25);
+    ctx.fillText('🖱 Mouse — Aim & Shoot', CW / 2, CH * 0.62 + 47);
+  }
   ctx.fillText("Protect Nicole's happiness from the Douchebags!", CW / 2, CH * 0.62 + 70);
 
   // Pulsing start prompt
@@ -1001,7 +1010,7 @@ function drawMenu() {
   ctx.globalAlpha = pulse;
   ctx.fillStyle = '#FFD700';
   ctx.font = 'bold 22px Arial';
-  ctx.fillText('Click or Press Enter to Start', CW / 2, CH - 40);
+  ctx.fillText(`${controlHint} to Start`, CW / 2, CH - 40);
   ctx.globalAlpha = 1;
 
   // Scrolling ticker
@@ -1060,7 +1069,7 @@ function drawLevelComplete() {
     ctx.globalAlpha = pulse;
     ctx.fillStyle = '#FFD700';
     ctx.font = 'bold 20px Arial';
-    ctx.fillText('Click or Press Enter for Next Level →', CW / 2, CH - 35);
+    ctx.fillText(`${controlHint} for Next Level →`, CW / 2, CH - 35);
     ctx.globalAlpha = 1;
   }
 }
@@ -1116,7 +1125,7 @@ function drawGameOver() {
     ctx.globalAlpha = pulse;
     ctx.font = 'bold 19px Arial';
     ctx.fillStyle = '#FFD700';
-    ctx.fillText('Click or Press Enter to Try Again', CW / 2, CH - 35);
+    ctx.fillText(`${controlHint} to Try Again`, CW / 2, CH - 35);
     ctx.globalAlpha = 1;
   }
 
