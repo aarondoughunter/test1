@@ -1,7 +1,6 @@
 import Phaser from 'phaser'
 import { BaseCharacter } from './BaseCharacter'
-import { MoveDefinition, HitboxFrame } from '../types'
-import * as C from '../constants'
+import { MoveDefinition } from '../types'
 
 export class Dougie extends BaseCharacter {
   readonly characterId = 'dougie'
@@ -16,6 +15,7 @@ export class Dougie extends BaseCharacter {
 
   constructor(scene: Phaser.Scene, x: number, y: number, isPlayer: boolean) {
     super(scene, x, y, isPlayer)
+    this.initCharacter()
 
     // Listen for round-reset event to clear firstAttackUsed
     this.scene.events.on('round-reset', () => {

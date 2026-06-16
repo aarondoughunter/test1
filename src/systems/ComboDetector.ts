@@ -84,17 +84,4 @@ export class ComboDetector {
     return dirs;
   }
 
-  private getDirections(input: RawInput, facing: 'left' | 'right'): string[] {
-    const raw = this.getDirectionsRaw(input);
-    if (facing === 'right') return raw;
-    return raw.map(d => {
-      if (d === 'LEFT') return 'RIGHT';
-      if (d === 'RIGHT') return 'LEFT';
-      if (d === 'DOWN_FORWARD') return 'DOWN_BACK';
-      if (d === 'DOWN_BACK') return 'DOWN_FORWARD';
-      if (d === 'UP_FORWARD') return 'UP_BACK';
-      if (d === 'UP_BACK') return 'UP_FORWARD';
-      return d;
-    });
-  }
 }

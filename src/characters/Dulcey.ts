@@ -1,7 +1,6 @@
 import Phaser from 'phaser'
 import { BaseCharacter } from './BaseCharacter'
 import { MoveDefinition, HitboxFrame } from '../types'
-import * as C from '../constants'
 
 export class Dulcey extends BaseCharacter {
   readonly characterId = 'dulcey'
@@ -16,6 +15,7 @@ export class Dulcey extends BaseCharacter {
 
   constructor(scene: Phaser.Scene, x: number, y: number, isPlayer: boolean) {
     super(scene, x, y, isPlayer)
+    this.initCharacter()
   }
 
   getIntroLine(): string {

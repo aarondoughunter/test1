@@ -52,10 +52,10 @@ export abstract class BaseCharacter {
   protected moves: MoveDefinition[] = []
 
   // Display objects (placeholder art)
-  protected bodyRect: Phaser.GameObjects.Rectangle
-  protected headRect: Phaser.GameObjects.Rectangle
-  protected nameText: Phaser.GameObjects.Text
-  protected facingLine: Phaser.GameObjects.Graphics
+  protected bodyRect!: Phaser.GameObjects.Rectangle
+  protected headRect!: Phaser.GameObjects.Rectangle
+  protected nameText!: Phaser.GameObjects.Text
+  protected facingLine!: Phaser.GameObjects.Graphics
 
   // Frame-rate handling
   private frameAccumulator: number = 0
@@ -77,11 +77,14 @@ export abstract class BaseCharacter {
     // So we initialize health in a post-construction step via a protected init method
 
     this.stateMachine = this.createStateMachine()
+    // createPlaceholderArt() and registerMoves() are called from each subclass
+    // constructor after super(), so that abstract property values are available.
+  }
+
+  protected initCharacter(): void {
+    this.health = this.maxHealth
     this.createPlaceholderArt()
     this.registerMoves()
-
-    // Set health after maxHealth is available (subclass sets it as readonly field)
-    this.health = this.maxHealth
   }
 
   // Abstract methods subclasses must implement
@@ -100,7 +103,7 @@ export abstract class BaseCharacter {
   }
 
   getCurrentHurtbox(): HitboxRect {
-    const state = this.stateMachine.currentState
+    const state = this.stateMachine.current
     if (state === 'CROUCH' || state === 'BLOCK_CROUCH') {
       return { x: -30, y: -90, w: 60, h: 90 }
     }
@@ -157,7 +160,7 @@ export abstract class BaseCharacter {
   }
 
   activateFinale(): boolean {
-    const currentState = this.stateMachine.currentState
+    const currentState = this.stateMachine.current
     const validStates: CharacterState[] = ['IDLE', 'WALK_FORWARD', 'WALK_BACK']
     if (this.meter < C.METER_MAX || !validStates.includes(currentState as CharacterState)) {
       return false
@@ -224,9 +227,9 @@ export abstract class BaseCharacter {
       if (!this.isGrounded) {
         this.isGrounded = true
         this.jumpsRemaining = 1
-        if (this.stateMachine.currentState === 'JUMP' ||
-            this.stateMachine.currentState === 'JUMP_FORWARD' ||
-            this.stateMachine.currentState === 'JUMP_BACK') {
+        if (this.stateMachine.current === 'JUMP' ||
+            this.stateMachine.current === 'JUMP_FORWARD' ||
+            this.stateMachine.current === 'JUMP_BACK') {
           this.stateMachine.transition('IDLE')
         }
       }
@@ -248,7 +251,7 @@ export abstract class BaseCharacter {
       'ATTACK_LIGHT', 'ATTACK_HEAVY', 'ATTACK_SPECIAL_1',
       'ATTACK_SPECIAL_2', 'ATTACK_SPECIAL_3', 'FINALE_CHARGE', 'FINALE_ACTIVE'
     ]
-    const currentState = this.stateMachine.currentState as CharacterState
+    const currentState = this.stateMachine.current as CharacterState
 
     if (attackStates.includes(currentState) && this.activeMove) {
       this.frameAccumulator += delta

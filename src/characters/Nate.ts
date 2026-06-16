@@ -1,7 +1,6 @@
 import Phaser from 'phaser'
 import { BaseCharacter } from './BaseCharacter'
 import { MoveDefinition, HitboxFrame } from '../types'
-import * as C from '../constants'
 
 export class Nate extends BaseCharacter {
   readonly characterId = 'nate'
@@ -16,6 +15,7 @@ export class Nate extends BaseCharacter {
 
   constructor(scene: Phaser.Scene, x: number, y: number, isPlayer: boolean) {
     super(scene, x, y, isPlayer)
+    this.initCharacter()
   }
 
   getIntroLine(): string {
@@ -45,7 +45,7 @@ export class Nate extends BaseCharacter {
       'ATTACK_LIGHT', 'ATTACK_HEAVY', 'ATTACK_SPECIAL_1',
       'ATTACK_SPECIAL_2', 'ATTACK_SPECIAL_3', 'FINALE_CHARGE', 'FINALE_ACTIVE'
     ]
-    const isInAttack = attackStates.includes(this.stateMachine.currentState as string)
+    const isInAttack = attackStates.includes(this.stateMachine.current as string)
 
     if (Math.abs(this.vx) < 1 && !isInAttack && this.isGrounded) {
       this.stillTimer += delta / (1000 / 60)

@@ -50,8 +50,8 @@ export class HitboxSystem {
 
     if (!this.overlaps(attackRect, defendRect)) return 'miss';
 
-    if (defenderIsBlocking && (attacker.frame.blockable !== false)) {
-      const attackType = attacker.frame.type;
+    if (defenderIsBlocking) {
+      const attackType = attacker.frame.type ?? 'high';
       if (attackType === 'low' && defenderIsCrouching) return 'blocked';
       if (attackType === 'high' && !defenderIsCrouching) return 'blocked';
       if (attackType === 'overhead' && !defenderIsCrouching) return 'blocked';

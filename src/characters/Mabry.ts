@@ -1,7 +1,6 @@
 import Phaser from 'phaser'
 import { BaseCharacter } from './BaseCharacter'
 import { MoveDefinition } from '../types'
-import * as C from '../constants'
 
 export class Mabry extends BaseCharacter {
   readonly characterId = 'mabry'
@@ -16,6 +15,7 @@ export class Mabry extends BaseCharacter {
 
   constructor(scene: Phaser.Scene, x: number, y: number, isPlayer: boolean) {
     super(scene, x, y, isPlayer)
+    this.initCharacter()
   }
 
   getIntroLine(): string {
@@ -37,9 +37,9 @@ export class Mabry extends BaseCharacter {
 
   update(delta: number, opponent: BaseCharacter): void {
     const wasInJump =
-      this.stateMachine.currentState === 'JUMP' ||
-      this.stateMachine.currentState === 'JUMP_FORWARD' ||
-      this.stateMachine.currentState === 'JUMP_BACK'
+      this.stateMachine.current === 'JUMP' ||
+      this.stateMachine.current === 'JUMP_FORWARD' ||
+      this.stateMachine.current === 'JUMP_BACK'
 
     super.update(delta, opponent)
 
@@ -58,7 +58,7 @@ export class Mabry extends BaseCharacter {
     // Jump count resets after aerial attack landing
     const nowGrounded = this.isGrounded
     const attackStates = ['ATTACK_LIGHT', 'ATTACK_HEAVY', 'ATTACK_SPECIAL_1', 'ATTACK_SPECIAL_2', 'ATTACK_SPECIAL_3']
-    if (wasInJump && nowGrounded && attackStates.includes(this.stateMachine.currentState as string)) {
+    if (wasInJump && nowGrounded && attackStates.includes(this.stateMachine.current as string)) {
       this.jumpsRemaining = 1
     }
 

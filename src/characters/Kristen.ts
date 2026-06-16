@@ -14,6 +14,7 @@ export class Kristen extends BaseCharacter {
 
   constructor(scene: Phaser.Scene, x: number, y: number, isPlayer: boolean) {
     super(scene, x, y, isPlayer)
+    this.initCharacter()
   }
 
   getIntroLine(): string {

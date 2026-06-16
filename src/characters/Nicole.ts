@@ -14,6 +14,7 @@ export class Nicole extends BaseCharacter {
 
   constructor(scene: Phaser.Scene, x: number, y: number, isPlayer: boolean) {
     super(scene, x, y, isPlayer)
+    this.initCharacter()
   }
 
   getIntroLine(): string {
@@ -120,7 +121,7 @@ export class Nicole extends BaseCharacter {
 
   update(delta: number, opponent: BaseCharacter): void {
     // Shadow Work teleport
-    const state = this.stateMachine.currentState
+    const state = this.stateMachine.current
     if (this.activeMove?.id === 'nicole_shadow_work' && state === 'ATTACK_SPECIAL_2') {
       const hf = this.activeMove.hitboxFrames[0]
       const activeStart = hf.startupFrames

@@ -1,7 +1,6 @@
 import Phaser from 'phaser'
 import { BaseCharacter } from './BaseCharacter'
-import { MoveDefinition, HitboxFrame } from '../types'
-import * as C from '../constants'
+import { MoveDefinition } from '../types'
 
 export class BigDog extends BaseCharacter {
   readonly characterId = 'big_dog'
@@ -16,6 +15,7 @@ export class BigDog extends BaseCharacter {
 
   constructor(scene: Phaser.Scene, x: number, y: number, isPlayer: boolean) {
     super(scene, x, y, isPlayer)
+    this.initCharacter()
   }
 
   getIntroLine(): string {
@@ -207,7 +207,6 @@ export class BigDog extends BaseCharacter {
 
   // Spawn projectiles for Buckshot Express when the move activates
   update(delta: number, opponent: BaseCharacter): void {
-    const prevMove = this.activeMove
     const prevFrame = this.currentMoveFrame
 
     super.update(delta, opponent)

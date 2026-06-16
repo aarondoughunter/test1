@@ -1,7 +1,6 @@
 import Phaser from 'phaser'
 import { BaseCharacter } from './BaseCharacter'
 import { MoveDefinition, HitboxFrame } from '../types'
-import * as C from '../constants'
 
 export class Aaron extends BaseCharacter {
   readonly characterId = 'aaron'
@@ -12,7 +11,6 @@ export class Aaron extends BaseCharacter {
   readonly color = '#C0C0C0'
 
   // Passive: "Pop Culture Arsenal"
-  private activeBuff: 'damage' | 'speed' | 'meterGain' | null = null
   private buffTimer: number = 0
   private damageBuff: number = 1.0
   private speedBuff: number = 1.0
@@ -20,6 +18,7 @@ export class Aaron extends BaseCharacter {
 
   constructor(scene: Phaser.Scene, x: number, y: number, isPlayer: boolean) {
     super(scene, x, y, isPlayer)
+    this.initCharacter()
   }
 
   getIntroLine(): string {
@@ -39,17 +38,14 @@ export class Aaron extends BaseCharacter {
   activateTaunt(index: number): void {
     this.buffTimer = 300
     if (index === 0) {
-      this.activeBuff = 'damage'
       this.damageBuff = 1.2
       this.speedBuff = 1.0
       this.meterGainBuff = 1.0
     } else if (index === 1) {
-      this.activeBuff = 'speed'
       this.speedBuff = 1.3
       this.damageBuff = 1.0
       this.meterGainBuff = 1.0
     } else if (index === 2) {
-      this.activeBuff = 'meterGain'
       this.meterGainBuff = 1.5
       this.damageBuff = 1.0
       this.speedBuff = 1.0
@@ -85,7 +81,6 @@ export class Aaron extends BaseCharacter {
       this.buffTimer -= delta / (1000 / 60)
       if (this.buffTimer <= 0) {
         this.buffTimer = 0
-        this.activeBuff = null
         this.damageBuff = 1.0
         this.speedBuff = 1.0
         this.meterGainBuff = 1.0

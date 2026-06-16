@@ -1,10 +1,8 @@
 export class DebugOverlay {
   private enabled = false;
-  private scene: Phaser.Scene;
   private text: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene) {
-    this.scene = scene;
     this.text = scene.add.text(8, 8, '', {
       fontFamily: 'monospace',
       fontSize: '12px',

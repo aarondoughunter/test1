@@ -14,11 +14,9 @@ export interface SpawnOptions {
 export class ProjectileManager {
   private projectiles: ProjectileData[] = [];
   private nextId = 0;
-  private scene: Phaser.Scene;
   private graphics: Phaser.GameObjects.Graphics;
 
   constructor(scene: Phaser.Scene) {
-    this.scene = scene;
     this.graphics = scene.add.graphics();
     this.graphics.setDepth(10);
   }

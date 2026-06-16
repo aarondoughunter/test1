@@ -1,7 +1,6 @@
 import Phaser from 'phaser'
 import { BaseCharacter } from './BaseCharacter'
 import { MoveDefinition } from '../types'
-import * as C from '../constants'
 
 export class Donna extends BaseCharacter {
   readonly characterId = 'donna'
@@ -13,10 +12,10 @@ export class Donna extends BaseCharacter {
 
   // Passive: "Southern Charm"
   private justWaitActive: boolean = false
-  private counterHealPending: boolean = false
 
   constructor(scene: Phaser.Scene, x: number, y: number, isPlayer: boolean) {
     super(scene, x, y, isPlayer)
+    this.initCharacter()
   }
 
   getIntroLine(): string {
@@ -35,7 +34,7 @@ export class Donna extends BaseCharacter {
   // Override takeDamage to implement Southern Charm passive
   takeDamage(amount: number, hitstun: number, knockbackX: number, isBlocked: boolean): void {
     // When in IDLE and takes a hit, set justWaitActive
-    if (!isBlocked && this.stateMachine.currentState === 'IDLE') {
+    if (!isBlocked && this.stateMachine.current === 'IDLE') {
       this.justWaitActive = true
     }
     super.takeDamage(amount, hitstun, knockbackX, isBlocked)

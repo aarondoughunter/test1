@@ -20,7 +20,7 @@ export interface HitboxFrame {
   blockstun: number;
   knockback: number;
   launchHeight: number;
-  type: 'high' | 'low' | 'overhead';
+  type?: 'high' | 'low' | 'overhead';
 }
 
 export interface MoveDefinition {
