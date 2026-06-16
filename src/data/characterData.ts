@@ -1,0 +1,156 @@
+import { CharacterStats } from '../types';
+
+export const characterData: Record<string, CharacterStats> = {
+  big_dog: {
+    id: 'big_dog',
+    displayName: 'Big Dog',
+    maxHealth: 1200,
+    walkSpeed: 180,
+    weight: 10,
+    color: '#8B4513',
+    introLine: 'Boy, you look lost.',
+    voiceLines: [
+      'Perfecto.',
+      'All bark? Lemme show you bite.',
+      'Smoke \'em if ya got \'em.',
+      'That\'s a paddlin\'.',
+    ],
+    victoryLine: 'All bark? Lemme show you bite.',
+  },
+
+  donna: {
+    id: 'donna',
+    displayName: 'Donna',
+    maxHealth: 900,
+    walkSpeed: 240,
+    weight: 6,
+    color: '#800020',
+    introLine: 'Bless your heart.',
+    voiceLines: [
+      'Yee haw, matey.',
+      'We\'ll steal your heart.',
+      'This dance is over.',
+      'Honey, that was embarrassing.',
+    ],
+    victoryLine: 'Honey, that was embarrassing.',
+  },
+
+  dougie: {
+    id: 'dougie',
+    displayName: 'Dougie',
+    maxHealth: 1100,
+    walkSpeed: 190,
+    weight: 8,
+    color: '#003087',
+    introLine: 'Let\'s circle back to your termination.',
+    voiceLines: [
+      'And for that reason, I\'m out.',
+      'We\'re gonna have to let you go.',
+      'Get back to work.',
+      'Consider this a restructuring.',
+    ],
+    victoryLine: 'Consider this a restructuring.',
+  },
+
+  aaron: {
+    id: 'aaron',
+    displayName: 'Aaron',
+    maxHealth: 950,
+    walkSpeed: 230,
+    weight: 6,
+    color: '#C0C0C0',
+    introLine: 'I have a bad feeling about this.',
+    voiceLines: [
+      '(Batman voice) I\'m Batman.',
+      '(Vader voice) I am your father.',
+      '(Thanos voice) I am… inevitable.',
+      'Roll credits.',
+    ],
+    victoryLine: 'Roll credits.',
+  },
+
+  mabry: {
+    id: 'mabry',
+    displayName: 'Mabry',
+    maxHealth: 820,
+    walkSpeed: 300,
+    weight: 4,
+    color: '#00CED1',
+    introLine: 'Deep water\'s where the monsters live.',
+    voiceLines: [
+      'It\'s not the heat, it\'s the humidity.',
+      'Don\'t hold your breath.',
+      'There\'s always a bigger fish.',
+      'Sink or swim.',
+    ],
+    victoryLine: 'Sink or swim.',
+  },
+
+  nate: {
+    id: 'nate',
+    displayName: 'Nate',
+    maxHealth: 850,
+    walkSpeed: 200,
+    weight: 5,
+    color: '#228B22',
+    introLine: 'Watch this.',
+    voiceLines: [
+      'Trust the process.',
+      'Easy money.',
+      'No problemo.',
+      'Calculated.',
+    ],
+    victoryLine: 'Calculated.',
+  },
+
+  dulcey: {
+    id: 'dulcey',
+    displayName: 'Dulcey',
+    maxHealth: 880,
+    walkSpeed: 210,
+    weight: 5,
+    color: '#9400D3',
+    introLine: 'Did you read the syllabus?',
+    voiceLines: [
+      'Flunk you.',
+      'YOU SHALL NOT PASS!',
+      'Detention!',
+      'Citation needed.',
+    ],
+    victoryLine: 'Citation needed.',
+  },
+
+  nicole: {
+    id: 'nicole',
+    displayName: 'Nicole',
+    maxHealth: 870,
+    walkSpeed: 220,
+    weight: 5,
+    color: '#FFD700',
+    introLine: 'Violence is not the answer… usually.',
+    voiceLines: [
+      'I usually choose kindness.',
+      'Protecting my peace.',
+      'Namaste.',
+      'That\'s going in my gratitude journal.',
+    ],
+    victoryLine: 'That\'s going in my gratitude journal.',
+  },
+
+  kristen: {
+    id: 'kristen',
+    displayName: 'Kristen',
+    maxHealth: 1000,
+    walkSpeed: 270,
+    weight: 7,
+    color: '#DC143C',
+    introLine: 'This is my recovery day.',
+    voiceLines: [
+      'I hope you stretched.',
+      'This counts as cardio.',
+      'This is just my warm-up.',
+      'Three… two… one… GO!',
+    ],
+    victoryLine: 'Three… two… one… GO!',
+  },
+};
