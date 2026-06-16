@@ -1,17 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Family Fighter</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dough Family Games</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #111; overflow: hidden; }
-    canvas { display: block; width: 100vw; height: 100vh; }
+    body {
+      background: #0a0a1a;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 40px;
+      padding: 40px;
+    }
+    h1 { font-size: 2.5rem; letter-spacing: 3px; text-transform: uppercase; }
+    .subtitle { color: #aaa; font-size: 1rem; margin-top: -30px; }
+    .games { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; }
+    .card {
+      background: #1a1a2e;
+      border: 2px solid #333;
+      border-radius: 12px;
+      padding: 30px 40px;
+      text-align: center;
+      text-decoration: none;
+      color: #fff;
+      transition: border-color 0.2s, transform 0.2s;
+      min-width: 220px;
+    }
+    .card:hover { border-color: #888; transform: translateY(-4px); }
+    .card .emoji { font-size: 3rem; display: block; margin-bottom: 12px; }
+    .card h2 { font-size: 1.3rem; margin-bottom: 8px; }
+    .card p { color: #aaa; font-size: 0.85rem; }
+    .fighter { border-color: #c0c0c0; }
+    .fighter:hover { border-color: #fff; }
+    .shooter { border-color: #ffd700; }
+    .shooter:hover { border-color: #ffe866; }
   </style>
-  <script type="module" crossorigin src="/test1/assets/index-BS6ld0ds.js"></script>
 </head>
 <body>
-  <div id="game"></div>
+  <h1>Dough Family Games</h1>
+  <p class="subtitle">Pick your game</p>
+  <div class="games">
+    <a class="card fighter" href="fighter/">
+      <span class="emoji">🥊</span>
+      <h2>Family Fighter</h2>
+      <p>9 characters, 3 difficulty levels,<br>special moves &amp; Finales</p>
+    </a>
+    <a class="card shooter" href="shooter/">
+      <span class="emoji">🎮</span>
+      <h2>Aaron Defender</h2>
+      <p>Shoot &amp; survive in this<br>top-down arcade shooter</p>
+    </a>
+  </div>
 </body>
 </html>
