@@ -28,6 +28,10 @@ export class UIScene extends Phaser.Scene {
   // Announcement tween tracking
   private announcementTween: Phaser.Tweens.Tween | null = null
 
+  // Low HP pulse
+  private pulsePhase = 0
+  private lowHpOverlay!: Phaser.GameObjects.Graphics
+
   // Voice lines
   private voiceLineDisplay!: VoiceLineDisplay
 
@@ -89,6 +93,11 @@ export class UIScene extends Phaser.Scene {
       stroke: '#000000',
       strokeThickness: 6,
     }).setOrigin(0.5, 0.5).setAlpha(0).setScale(0)
+
+    // Low HP vignette overlay
+    this.lowHpOverlay = this.add.graphics()
+    this.lowHpOverlay.setDepth(5)
+    this.lowHpOverlay.setAlpha(0)
 
     // Voice line display
     this.voiceLineDisplay = new VoiceLineDisplay(this)
@@ -215,20 +224,23 @@ export class UIScene extends Phaser.Scene {
   }
 
   update(): void {
+    this.pulsePhase += 0.15
     this.barGraphics.clear()
 
     const p1Pct = this.p1HealthMax > 0 ? this.p1Health / this.p1HealthMax : 0
     const p2Pct = this.p2HealthMax > 0 ? this.p2Health / this.p2HealthMax : 0
 
     // --- P1 health bar (x=20, y=30, w=400, h=24) ---
-    // Background
     this.barGraphics.fillStyle(0x333333, 1)
     this.barGraphics.fillRect(20, 30, 400, 24)
-    // Fill
     const p1FillW = Math.round(Math.max(0, p1Pct) * 400)
-    this.barGraphics.fillStyle(this.getBarColor(p1Pct), 1)
+    let p1BarColor = this.getBarColor(p1Pct)
+    if (p1Pct < 0.25) {
+      const pulse = 0.5 + 0.5 * Math.sin(this.pulsePhase * 8)
+      p1BarColor = pulse > 0.5 ? 0xff2222 : 0xff6666
+    }
+    this.barGraphics.fillStyle(p1BarColor, 1)
     this.barGraphics.fillRect(20, 30, p1FillW, 24)
-    // Border
     this.barGraphics.lineStyle(1, 0x888888, 1)
     this.barGraphics.strokeRect(20, 30, 400, 24)
 
@@ -236,8 +248,12 @@ export class UIScene extends Phaser.Scene {
     this.barGraphics.fillStyle(0x333333, 1)
     this.barGraphics.fillRect(860, 30, 400, 24)
     const p2FillW = Math.round(Math.max(0, p2Pct) * 400)
-    this.barGraphics.fillStyle(this.getBarColor(p2Pct), 1)
-    // Right-to-left: fill starts at right edge
+    let p2BarColor = this.getBarColor(p2Pct)
+    if (p2Pct < 0.25) {
+      const pulse = 0.5 + 0.5 * Math.sin(this.pulsePhase * 8)
+      p2BarColor = pulse > 0.5 ? 0xff2222 : 0xff6666
+    }
+    this.barGraphics.fillStyle(p2BarColor, 1)
     this.barGraphics.fillRect(860 + 400 - p2FillW, 30, p2FillW, 24)
     this.barGraphics.lineStyle(1, 0x888888, 1)
     this.barGraphics.strokeRect(860, 30, 400, 24)
@@ -261,5 +277,18 @@ export class UIScene extends Phaser.Scene {
     this.barGraphics.fillRect(860 + 400 - p2MeterW, 60, p2MeterW, 10)
     this.barGraphics.lineStyle(1, 0x666699, 1)
     this.barGraphics.strokeRect(860, 60, 400, 10)
+
+    // --- Low HP vignette overlay ---
+    this.lowHpOverlay.clear()
+    if (p1Pct < 0.25) {
+      this.lowHpOverlay.setAlpha(1)
+      this.lowHpOverlay.fillStyle(0xff0000, 0.15 * (1 - p1Pct / 0.25))
+      this.lowHpOverlay.fillRect(0, 0, 1280, 60)
+      this.lowHpOverlay.fillRect(0, 660, 1280, 60)
+      this.lowHpOverlay.fillRect(0, 0, 60, 720)
+      this.lowHpOverlay.fillRect(1220, 0, 60, 720)
+    } else {
+      this.lowHpOverlay.setAlpha(0)
+    }
   }
 }

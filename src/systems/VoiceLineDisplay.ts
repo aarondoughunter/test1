@@ -9,31 +9,38 @@ export class VoiceLineDisplay {
   }
 
   show(text: string, x: number, y: number, color = '#ffffff'): void {
-    const label = this.scene.add.text(x, y - 80, text, {
-      fontFamily: 'Arial',
-      fontSize: '20px',
-      fontStyle: 'bold',
-      color,
+    const colorNum = parseInt(color.replace('#', ''), 16)
+    const bg = this.scene.add.graphics()
+    bg.fillStyle(0x000000, 0.75)
+    const padding = 12
+    const textObj = this.scene.add.text(x, y - 80, text, {
+      fontSize: '18px',
+      color: color,
       stroke: '#000000',
-      strokeThickness: 4,
-      align: 'center',
-    });
-    label.setOrigin(0.5, 1);
-    label.setDepth(100);
+      strokeThickness: 3,
+      fontStyle: 'bold',
+    }).setOrigin(0.5, 1).setDepth(30)
 
-    this.activeLines.push(label);
+    const bounds = textObj.getBounds()
+    bg.fillRoundedRect(bounds.x - padding, bounds.y - padding, bounds.width + padding * 2, bounds.height + padding * 2, 8)
+    bg.lineStyle(2, colorNum, 1)
+    bg.strokeRoundedRect(bounds.x - padding, bounds.y - padding, bounds.width + padding * 2, bounds.height + padding * 2, 8)
+    bg.setDepth(29)
+
+    this.activeLines.push(textObj)
 
     this.scene.tweens.add({
-      targets: label,
-      y: label.y - 30,
-      alpha: 0,
+      targets: [textObj, bg],
+      y: `-=25`,
+      alpha: { from: 1, to: 0 },
       duration: VOICE_LINE_DURATION,
-      ease: 'Power1',
+      ease: 'Quad.easeIn',
       onComplete: () => {
-        label.destroy();
-        this.activeLines = this.activeLines.filter(l => l !== label);
+        textObj.destroy()
+        bg.destroy()
+        this.activeLines = this.activeLines.filter(t => t !== textObj)
       },
-    });
+    })
   }
 
   update(): void {

@@ -118,6 +118,7 @@ export class FightScene extends Phaser.Scene {
 
     // Listen for the scene-level events the RoundManager emits
     this.events.on('round-end', (data: { winner: string; round: number }) => {
+      this.cameras.main.shake(400, 0.015)
       const roundEndData = {
         winner: data.winner,
         p1Wins: this.roundManager.p1RoundsWon,
@@ -160,28 +161,43 @@ export class FightScene extends Phaser.Scene {
 
   private drawStage(stage: StageData): void {
     const g = this.stageGraphics
+    g.clear()
 
-    // Sky — top 2/3
-    const skyHeight = Math.round(C.GAME_HEIGHT * 0.67)
+    // Sky gradient simulation (two-tone)
     g.fillStyle(stage.skyColor, 1)
-    g.fillRect(0, 0, C.GAME_WIDTH, skyHeight)
+    g.fillRect(0, 0, 1280, 400)
 
-    // Ground — bottom 1/3
+    // Darker mid-ground band
+    const midColor = Phaser.Display.Color.IntegerToColor(stage.skyColor)
+    midColor.darken(20)
+    g.fillStyle(midColor.color, 1)
+    g.fillRect(0, 380, 1280, 120)
+
+    // Ground
     g.fillStyle(stage.groundColor, 1)
-    g.fillRect(0, skyHeight, C.GAME_WIDTH, C.GAME_HEIGHT - skyHeight)
+    g.fillRect(0, C.FLOOR_Y, 1280, 720 - C.FLOOR_Y)
 
-    // Simple background interest — vertical accent pillars
-    g.fillStyle(stage.accentColor, 0.25)
-    const pillarCount = 6
-    const pillarW = 30
-    for (let i = 0; i < pillarCount; i++) {
-      const px = (C.GAME_WIDTH / (pillarCount + 1)) * (i + 1) - pillarW / 2
-      g.fillRect(px, 100, pillarW, skyHeight - 100)
+    // Ground accent stripe
+    g.fillStyle(stage.accentColor, 1)
+    g.fillRect(0, C.FLOOR_Y, 1280, 8)
+
+    // Simple background pillars/elements for depth
+    const pillarColor = Phaser.Display.Color.IntegerToColor(stage.skyColor)
+    pillarColor.darken(30)
+    g.fillStyle(pillarColor.color, 0.6)
+    for (let i = 0; i < 5; i++) {
+      const px = 100 + i * 280
+      g.fillRect(px, 200, 40, 180)
     }
 
-    // Floor line at FLOOR_Y
-    g.lineStyle(2, 0xffffff, 0.8)
-    g.lineBetween(0, C.FLOOR_Y, C.GAME_WIDTH, C.FLOOR_Y)
+    // Floor line
+    g.lineStyle(3, 0xffffff, 0.8)
+    g.lineBetween(C.STAGE_LEFT_BOUND, C.FLOOR_Y, C.STAGE_RIGHT_BOUND, C.FLOOR_Y)
+
+    // Stage edge shadows
+    g.fillStyle(0x000000, 0.3)
+    g.fillRect(0, 0, C.STAGE_LEFT_BOUND, 720)
+    g.fillRect(C.STAGE_RIGHT_BOUND, 0, 1280 - C.STAGE_RIGHT_BOUND, 720)
   }
 
   update(_time: number, delta: number): void {
@@ -316,8 +332,10 @@ export class FightScene extends Phaser.Scene {
 
     // Finale activation
     if (raw.meter && raw.special && this.playerChar.meter >= C.METER_MAX && notBusy) {
-      this.playerChar.activateFinale()
-      this.triggerSuperFreeze()
+      if (this.playerChar.activateFinale()) {
+        this.triggerSuperFreeze()
+        this.triggerFinaleEffect(this.playerChar)
+      }
       return
     }
 
@@ -533,6 +551,7 @@ export class FightScene extends Phaser.Scene {
       case 'USE_FINALE':
         if (char.activateFinale()) {
           this.triggerSuperFreeze()
+          this.triggerFinaleEffect(char)
         }
         break
 
@@ -582,6 +601,12 @@ export class FightScene extends Phaser.Scene {
       this.isHitStop = true
       this.hitStopTimer = isHeavy ? C.HEAVY_HIT_STOP_FRAMES : C.HIT_STOP_FRAMES
 
+      if (result === 'hit') {
+        const impactX = (attacker.x + defender.x) / 2
+        const impactY = attacker.y - 100
+        this.spawnHitSpark(impactX, impactY, isHeavy, attacker.color)
+      }
+
       // Voice line chance on hit
       if (result === 'hit' && Math.random() < 0.15) {
         this.pendingVoiceLine = {
@@ -620,6 +645,78 @@ export class FightScene extends Phaser.Scene {
       this.playerChar.takeDamage(p1Hit.damage, p1Hit.hitstun, p1Hit.knockback, false)
       this.aiChar.gainMeter(C.METER_GAIN_ON_HIT_SPECIAL)
     }
+  }
+
+  private spawnHitSpark(x: number, y: number, isHeavy: boolean, attackerColor: string): void {
+    const colorNum = parseInt(attackerColor.replace('#', ''), 16)
+    const count = isHeavy ? 8 : 5
+    const speed = isHeavy ? 300 : 180
+    const g = this.add.graphics()
+    g.setDepth(20)
+
+    const particles: { x: number; y: number; vx: number; vy: number; life: number; maxLife: number }[] = []
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.8
+      particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 100, life: 1, maxLife: 1 })
+    }
+
+    const flash = this.add.graphics()
+    flash.setDepth(19)
+    flash.fillStyle(0xffffff, 0.9)
+    flash.fillCircle(x, y, isHeavy ? 30 : 18)
+    this.time.delayedCall(60, () => flash.destroy())
+
+    const timer = this.time.addEvent({
+      delay: 16,
+      repeat: 15,
+      callback: () => {
+        g.clear()
+        for (const p of particles) {
+          p.x += p.vx * 0.016
+          p.y += p.vy * 0.016
+          p.vy += 600 * 0.016
+          p.life -= 1 / 16
+          if (p.life > 0) {
+            const r = Math.max(1, 5 * p.life)
+            g.fillStyle(colorNum, p.life)
+            g.fillCircle(p.x, p.y, r)
+            g.fillStyle(0xffffff, p.life * 0.8)
+            g.fillCircle(p.x, p.y, r * 0.4)
+          }
+        }
+        if (timer.repeatCount === 0) g.destroy()
+      },
+    })
+  }
+
+  private triggerFinaleEffect(char: BaseCharacter): void {
+    const colorNum = parseInt(char.color.replace('#', ''), 16)
+    const overlay = this.add.graphics()
+    overlay.setDepth(25)
+    overlay.fillStyle(0x000000, 0)
+    overlay.fillRect(0, 0, 1280, 720)
+
+    this.tweens.add({
+      targets: overlay,
+      alpha: 0.7,
+      duration: 200,
+      ease: 'Quad.easeIn',
+      onComplete: () => {
+        overlay.clear()
+        overlay.fillStyle(colorNum, 0.4)
+        overlay.fillRect(0, 0, 1280, 720)
+        this.tweens.add({
+          targets: overlay,
+          alpha: 0,
+          duration: 600,
+          delay: 300,
+          ease: 'Quad.easeOut',
+          onComplete: () => overlay.destroy(),
+        })
+      },
+    })
+
+    this.cameras.main.shake(300, 0.012)
   }
 
   private triggerSuperFreeze(): void {

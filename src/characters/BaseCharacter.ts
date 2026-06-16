@@ -140,6 +140,7 @@ export abstract class BaseCharacter {
       this.hitstunFrames = hitstun
       this.gainMeter(C.METER_GAIN_ON_RECEIVE)
       this.hitReceivedThisFrame = true
+      this.flashOnHit()
 
       if (hitstun > 20) {
         this.knockbackVx = knockbackX
@@ -176,6 +177,10 @@ export abstract class BaseCharacter {
     this.activeMove = move
     this.currentMoveFrame = 0
 
+    if (!move.id.endsWith('_basic_light') && !move.id.endsWith('_basic_heavy')) {
+      this.spawnSpecialAura()
+    }
+
     if (move.isFinale) {
       this.stateMachine.transition('FINALE_CHARGE')
     } else if (move.isCommandGrab) {
@@ -200,6 +205,34 @@ export abstract class BaseCharacter {
         this.stateMachine.transition('ATTACK_SPECIAL_1')
       }
     }
+  }
+
+  protected flashOnHit(): void {
+    if (!this.bodyRect) return
+    const colorNum = parseInt(this.color.replace('#', ''), 16)
+    this.bodyRect.setFillStyle(0xffffff)
+    this.headRect?.setFillStyle(0xffffff)
+    this.scene.time.delayedCall(80, () => {
+      this.bodyRect?.setFillStyle(colorNum)
+      this.headRect?.setFillStyle(colorNum)
+    })
+  }
+
+  protected spawnSpecialAura(): void {
+    const colorNum = parseInt(this.color.replace('#', ''), 16)
+    const ring = this.scene.add.graphics()
+    ring.lineStyle(4, colorNum, 0.9)
+    ring.strokeCircle(this.x, this.y - 80, 50)
+    ring.setDepth(5)
+    this.scene.tweens.add({
+      targets: ring,
+      alpha: 0,
+      scaleX: 2.5,
+      scaleY: 2.5,
+      duration: 300,
+      ease: 'Quad.easeOut',
+      onComplete: () => ring.destroy(),
+    })
   }
 
   update(delta: number, opponent: BaseCharacter): void {
