@@ -78,6 +78,56 @@ export class MainMenuScene extends Phaser.Scene {
       color: '#FF4500',
     }).setOrigin(0.5, 0.5)
 
+    // Controls panel
+    const panelX = GAME_WIDTH / 2
+    const panelY = 630
+    this.add.rectangle(panelX, panelY, 900, 130, 0x000000, 0.5)
+      .setStrokeStyle(1, 0x444444)
+
+    this.add.text(panelX, panelY - 48, 'CONTROLS', {
+      fontFamily: 'Arial Black, Arial',
+      fontSize: '14px',
+      color: '#FF4500',
+      letterSpacing: 4,
+    }).setOrigin(0.5, 0.5)
+
+    const col1 = [
+      '← →   Move / Walk back',
+      '↑      Jump',
+      '↓      Crouch',
+      'Hold ← (back)   Block',
+    ].join('\n')
+
+    const col2 = [
+      'Z   Light Attack',
+      'X   Heavy Attack',
+      'C   Special  (+ motion for combo specials)',
+      'V + C   Finale  (requires full meter)',
+    ].join('\n')
+
+    const col3 = 'P   Pause\nF1  Debug'
+
+    this.add.text(panelX - 360, panelY - 10, col1, {
+      fontFamily: 'Arial',
+      fontSize: '14px',
+      color: '#dddddd',
+      lineSpacing: 6,
+    }).setOrigin(0, 0.5)
+
+    this.add.text(panelX - 20, panelY - 10, col2, {
+      fontFamily: 'Arial',
+      fontSize: '14px',
+      color: '#dddddd',
+      lineSpacing: 6,
+    }).setOrigin(0, 0.5)
+
+    this.add.text(panelX + 340, panelY - 10, col3, {
+      fontFamily: 'Arial',
+      fontSize: '14px',
+      color: '#dddddd',
+      lineSpacing: 6,
+    }).setOrigin(0, 0.5)
+
     this.updateCursor()
 
     // Keys

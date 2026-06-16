@@ -27,10 +27,21 @@ export class RoundManager {
   }
 
   update(delta: number, p1Health: number, p2Health: number): void {
+    this.phaseTimer += delta;
+
+    // INTRO: wait 2 s then start the fight
+    if (this.phase === 'INTRO') {
+      if (this.phaseTimer >= 2000) {
+        this.phase = 'FIGHT';
+        this.phaseTimer = 0;
+        this.scene.events.emit('fight-start');
+      }
+      return;
+    }
+
     if (this.phase !== 'FIGHT') return;
 
     this.roundTimeRemaining -= delta / 1000;
-    this.phaseTimer += delta;
 
     if (p1Health <= 0 && p2Health <= 0) {
       this.endRound('draw');

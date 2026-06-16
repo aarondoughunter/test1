@@ -34,6 +34,8 @@ export class FightScene extends Phaser.Scene {
   private hitStopTimer = 0
   private isHitStop = false
   private pendingVoiceLine: { char: BaseCharacter; index: number } | null = null
+  private isPaused = false
+  private pauseOverlay: Phaser.GameObjects.Container | null = null
 
   constructor() {
     super({ key: 'FightScene' })
@@ -94,6 +96,7 @@ export class FightScene extends Phaser.Scene {
       heavy: 'X',
       special: 'C',
       meter: 'V',
+      pause: 'P',
       f1: 'F1',
     }) as { [key: string]: Phaser.Input.Keyboard.Key }
 
@@ -201,9 +204,18 @@ export class FightScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number): void {
-    // Allow RoundManager to manage INTRO/KO phases
+    // Pause toggle (always active)
+    if (Phaser.Input.Keyboard.JustDown(this.keys['pause'])) {
+      this.togglePause()
+    }
+    if (this.isPaused) return
+
+    // During INTRO / KO / ROUND_END: advance the round manager and keep
+    // characters visually updated, but skip input and hitbox processing.
     if (this.roundManager.phase !== 'FIGHT') {
       this.roundManager.update(delta, this.playerChar.health, this.aiChar.health)
+      this.playerChar.update(delta, this.aiChar)
+      this.aiChar.update(delta, this.playerChar)
       return
     }
 
@@ -309,14 +321,15 @@ export class FightScene extends Phaser.Scene {
 
   private readPlayerInput(): RawInput {
     const k = this.keys
+    const JD = Phaser.Input.Keyboard.JustDown
     return {
       left: k['left'].isDown,
       right: k['right'].isDown,
       up: k['up'].isDown,
       down: k['down'].isDown,
-      light: k['light'].isDown,
-      heavy: k['heavy'].isDown,
-      special: k['special'].isDown,
+      light: JD(k['light']),
+      heavy: JD(k['heavy']),
+      special: JD(k['special']),
       meter: k['meter'].isDown,
       frame: this.currentFrame,
     }
@@ -717,6 +730,41 @@ export class FightScene extends Phaser.Scene {
     })
 
     this.cameras.main.shake(300, 0.012)
+  }
+
+  private togglePause(): void {
+    this.isPaused = !this.isPaused
+    if (this.isPaused) {
+      const bg = this.add.rectangle(640, 360, 1280, 720, 0x000000, 0.65)
+      const title = this.add.text(640, 300, 'PAUSED', {
+        fontFamily: 'Arial Black, Arial',
+        fontSize: '72px',
+        fontStyle: 'bold',
+        color: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 8,
+      }).setOrigin(0.5)
+      const hint = this.add.text(640, 390, 'Press P to resume', {
+        fontFamily: 'Arial',
+        fontSize: '24px',
+        color: '#aaaaaa',
+      }).setOrigin(0.5)
+      const controls = this.add.text(640, 470, [
+        '← →  Move      Z  Light      X  Heavy',
+        '↑  Jump        C  Special    V+C  Finale (full meter)',
+        '↓  Crouch      Hold ← (back) to Block',
+      ].join('\n'), {
+        fontFamily: 'Arial',
+        fontSize: '18px',
+        color: '#cccccc',
+        align: 'center',
+      }).setOrigin(0.5)
+      this.pauseOverlay = this.add.container(0, 0, [bg, title, hint, controls])
+      this.pauseOverlay.setDepth(1000)
+    } else {
+      this.pauseOverlay?.destroy()
+      this.pauseOverlay = null
+    }
   }
 
   private triggerSuperFreeze(): void {
