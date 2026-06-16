@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite'
 export default defineConfig({
-  base: '/family-fighter/',
+  base: '/test1/',
   build: { outDir: 'dist' }
 })
