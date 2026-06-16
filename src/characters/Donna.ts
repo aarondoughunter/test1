@@ -218,16 +218,12 @@ export class Donna extends BaseCharacter {
 
       if (prevFrame < activeStart && this.currentMoveFrame >= activeStart) {
         const dir = this.facing === 'right' ? 1 : -1
+        const colorNum = parseInt(this.color.replace('#', ''), 16)
         this.projectileManager.spawn({
-          x: this.x + dir * 30,
-          y: this.y - 110,
-          vx: dir * 700,
-          vy: 0,
-          damage: hf.damage,
-          hitstun: hf.hitstun,
-          knockback: hf.knockback * dir,
-          ownerId: this.characterId,
-          type: 'bullet'
+          x: this.x + dir * 30, y: this.y - 110,
+          vx: dir * 700, vy: 0,
+          damage: hf.damage, hitstun: hf.hitstun, knockback: hf.knockback * dir,
+          ownerId: this.characterId, radius: 6, color: colorNum, lifetime: 90,
         })
       }
     }

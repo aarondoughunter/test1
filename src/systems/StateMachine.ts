@@ -13,7 +13,7 @@ export class StateMachine {
   private _previous: CharacterState;
   private _stateTimer = 0;
 
-  constructor(initialState: CharacterState) {
+  constructor(initialState: CharacterState = 'IDLE') {
     this._current = initialState;
     this._previous = initialState;
     this.buildDefaultTransitions();
@@ -71,6 +71,12 @@ export class StateMachine {
 
   get stateTimer(): number {
     return this._stateTimer;
+  }
+
+  setState(state: CharacterState): void {
+    this._current = state;
+    this._previous = state;
+    this._stateTimer = 0;
   }
 
   canTransitionTo(state: CharacterState): boolean {

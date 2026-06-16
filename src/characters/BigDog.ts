@@ -222,38 +222,24 @@ export class BigDog extends BaseCharacter {
       if (prevFrame < activeStart && this.currentMoveFrame >= activeStart) {
         const dir = this.facing === 'right' ? 1 : -1
         // Spawn 3 projectiles in a spread
+        const colorNum = parseInt(this.color.replace('#', ''), 16)
         this.projectileManager.spawn({
-          x: this.x + dir * 20,
-          y: this.y - 100,
-          vx: dir * 600,
-          vy: -50,
-          damage: hf.damage,
-          hitstun: hf.hitstun,
-          knockback: hf.knockback * dir,
-          ownerId: this.characterId,
-          type: 'buckshot'
+          x: this.x + dir * 20, y: this.y - 100,
+          vx: dir * 600, vy: -50,
+          damage: hf.damage, hitstun: hf.hitstun, knockback: hf.knockback * dir,
+          ownerId: this.characterId, radius: 10, color: colorNum, lifetime: 60,
         })
         this.projectileManager.spawn({
-          x: this.x + dir * 20,
-          y: this.y - 100,
-          vx: dir * 580,
-          vy: 0,
-          damage: hf.damage,
-          hitstun: hf.hitstun,
-          knockback: hf.knockback * dir,
-          ownerId: this.characterId,
-          type: 'buckshot'
+          x: this.x + dir * 20, y: this.y - 100,
+          vx: dir * 580, vy: 0,
+          damage: hf.damage, hitstun: hf.hitstun, knockback: hf.knockback * dir,
+          ownerId: this.characterId, radius: 10, color: colorNum, lifetime: 60,
         })
         this.projectileManager.spawn({
-          x: this.x + dir * 20,
-          y: this.y - 100,
-          vx: dir * 600,
-          vy: 50,
-          damage: hf.damage,
-          hitstun: hf.hitstun,
-          knockback: hf.knockback * dir,
-          ownerId: this.characterId,
-          type: 'buckshot'
+          x: this.x + dir * 20, y: this.y - 100,
+          vx: dir * 600, vy: 50,
+          damage: hf.damage, hitstun: hf.hitstun, knockback: hf.knockback * dir,
+          ownerId: this.characterId, radius: 10, color: colorNum, lifetime: 60,
         })
       }
     }

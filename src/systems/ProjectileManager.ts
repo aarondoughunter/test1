@@ -1,6 +1,16 @@
 import { ProjectileData } from '../types';
 import { GRAVITY } from '../constants';
 
+export interface SpawnOptions {
+  ownerId: string;
+  x: number; y: number;
+  vx: number; vy: number;
+  damage: number; hitstun: number; knockback: number;
+  radius?: number;
+  color?: number;
+  lifetime?: number;
+}
+
 export class ProjectileManager {
   private projectiles: ProjectileData[] = [];
   private nextId = 0;
@@ -13,9 +23,17 @@ export class ProjectileManager {
     this.graphics.setDepth(10);
   }
 
-  spawn(data: Omit<ProjectileData, 'id' | 'hitRegistered'>): string {
+  spawn(data: SpawnOptions): string {
     const id = `proj_${this.nextId++}`;
-    this.projectiles.push({ ...data, id, hitRegistered: false });
+    const proj: ProjectileData = {
+      radius: 8,
+      color: 0xffffff,
+      lifetime: 120,
+      ...data,
+      id,
+      hitRegistered: false,
+    };
+    this.projectiles.push(proj);
     return id;
   }
 
