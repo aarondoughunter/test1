@@ -20,7 +20,6 @@ export const MOTION_GAP_TOLERANCE = 3;
 export const JUMP_VELOCITY = -650;
 export const GRAVITY = 1800;
 export const WALL_PUSHBACK = 40;
-export const VOICE_LINE_DURATION = 2500;
 export const CHIP_DAMAGE_RATIO = 0.1;
 export const SUPER_FREEZE_FRAMES = 30;
 export const AI_DECISION_INTERVAL_EASY = 30;
@@ -29,3 +28,6 @@ export const AI_DECISION_INTERVAL_HARD = 6;
 export const AI_MISTAKE_CHANCE_EASY = 0.35;
 export const AI_MISTAKE_CHANCE_MEDIUM = 0.15;
 export const AI_MISTAKE_CHANCE_HARD = 0.03;
+export const ARCADE_FONT = '"Press Start 2P", Arial';
+// Pose-frame source art is authored at 512x768; on-screen characters render at this height.
+export const ART_TARGET_HEIGHT = 400;

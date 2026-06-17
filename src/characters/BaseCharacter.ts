@@ -4,6 +4,8 @@ import { StateMachine } from '../systems/StateMachine'
 import { InputBuffer } from '../systems/InputBuffer'
 import { ProjectileManager } from '../systems/ProjectileManager'
 import { TrapManager } from '../systems/TrapManager'
+import { hasArt, getPoseFrames, applyArtScale } from '../systems/CharacterArtRegistry'
+import { AnimationController } from '../systems/AnimationController'
 import * as C from '../constants'
 
 export abstract class BaseCharacter {
@@ -54,8 +56,12 @@ export abstract class BaseCharacter {
   // Display objects (placeholder art)
   protected bodyRect!: Phaser.GameObjects.Rectangle
   protected headRect!: Phaser.GameObjects.Rectangle
-  protected nameText!: Phaser.GameObjects.Text
   protected facingLine!: Phaser.GameObjects.Graphics
+
+  // Real art (when available for this character)
+  artSprite: Phaser.GameObjects.Sprite | null = null
+  hasRealArt: boolean = false
+  protected animController: AnimationController | null = null
 
   // Frame-rate handling
   private frameAccumulator: number = 0
@@ -84,7 +90,23 @@ export abstract class BaseCharacter {
   protected initCharacter(): void {
     this.health = this.maxHealth
     this.createPlaceholderArt()
+    this.initArt()
     this.registerMoves()
+  }
+
+  protected initArt(): void {
+    this.hasRealArt = hasArt(this.scene, this.characterId)
+    if (!this.hasRealArt) return
+
+    const idleFrames = getPoseFrames(this.scene, this.characterId, 'idle')
+    this.artSprite = this.scene.add.sprite(this.x, this.y, idleFrames[0]).setOrigin(0.5, 1)
+    applyArtScale(this.artSprite, C.ART_TARGET_HEIGHT)
+    this.animController = new AnimationController(this.scene, this.characterId, this.artSprite)
+    this.animController.playForState('IDLE')
+
+    this.bodyRect?.setVisible(false)
+    this.headRect?.setVisible(false)
+    this.facingLine?.setVisible(false)
   }
 
   // Abstract methods subclasses must implement
@@ -208,6 +230,13 @@ export abstract class BaseCharacter {
   }
 
   protected flashOnHit(): void {
+    if (this.hasRealArt && this.artSprite) {
+      this.artSprite.setTintFill(0xffffff)
+      this.scene.time.delayedCall(80, () => {
+        this.artSprite?.clearTint()
+      })
+    }
+
     if (!this.bodyRect) return
     const colorNum = parseInt(this.color.replace('#', ''), 16)
     this.bodyRect.setFillStyle(0xffffff)
@@ -373,7 +402,7 @@ export abstract class BaseCharacter {
 
     for (const state of allStates) {
       sm.addState(state, {
-        enter: () => {},
+        enter: () => this.onStateEnter(state),
         exit: () => {},
         update: (_dt: number) => {}
       })
@@ -381,6 +410,11 @@ export abstract class BaseCharacter {
 
     sm.setState('IDLE')
     return sm
+  }
+
+  protected onStateEnter(state: CharacterState): void {
+    if (!this.hasRealArt || !this.animController) return
+    this.animController.playForState(state)
   }
 
   protected createPlaceholderArt(): void {
@@ -408,14 +442,6 @@ export abstract class BaseCharacter {
       colorNum
     )
 
-    // Name text above head
-    this.nameText = this.scene.add.text(
-      this.x,
-      this.y - bodyH - 50,
-      this.displayName,
-      { fontSize: '12px', color: '#ffffff', stroke: '#000000', strokeThickness: 2 }
-    ).setOrigin(0.5, 0.5)
-
     // Facing line
     this.facingLine = this.scene.add.graphics()
     this.drawFacingLine()
@@ -441,6 +467,11 @@ export abstract class BaseCharacter {
   }
 
   updateArt(): void {
+    if (this.hasRealArt && this.artSprite) {
+      this.artSprite.setPosition(this.x, this.y)
+      this.artSprite.setFlipX(this.facing === 'left')
+    }
+
     if (!this.bodyRect) return
 
     let bodyH = 160
@@ -452,7 +483,6 @@ export abstract class BaseCharacter {
 
     this.bodyRect.setPosition(this.x, this.y - bodyH / 2)
     this.headRect.setPosition(this.x, this.y - bodyH - 20)
-    this.nameText.setPosition(this.x, this.y - bodyH - 50)
 
     // Flip based on facing
     const scaleX = this.facing === 'right' ? 1 : -1
@@ -464,7 +494,7 @@ export abstract class BaseCharacter {
   destroy(): void {
     this.bodyRect?.destroy()
     this.headRect?.destroy()
-    this.nameText?.destroy()
     this.facingLine?.destroy()
+    this.artSprite?.destroy()
   }
 }

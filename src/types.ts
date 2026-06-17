@@ -83,6 +83,8 @@ export interface StageData {
   skyColor: number;
   groundColor: number;
   accentColor: number;
+  backgroundKey?: string;
+  characterId?: string;
 }
 
 export interface ProjectileData {

@@ -1,9 +1,10 @@
 import Phaser from 'phaser'
-import { GAME_WIDTH, GAME_HEIGHT } from '../constants'
+import { GAME_WIDTH, GAME_HEIGHT, ARCADE_FONT } from '../constants'
 import { characterData } from '../data/characterData'
-import { stageData } from '../data/stageData'
 import { CHARACTER_ORDER } from '../characters/characterFactory'
 import { AIDifficulty } from '../types'
+import { getPoseFrames, applyArtScale } from '../systems/CharacterArtRegistry'
+import { addScanlineOverlay, addVignette, drawGradientPanel, addTitleGlow } from '../utils/ArcadeChrome'
 
 const GRID_COLS = 3
 const GRID_ROWS = 3
@@ -44,6 +45,7 @@ export class CharacterSelectScene extends Phaser.Scene {
   private previewIntro!: Phaser.GameObjects.Text
   private previewStatBars: Phaser.GameObjects.Rectangle[] = []
   private previewStatBg: Phaser.GameObjects.Rectangle[] = []
+  private previewArt: Phaser.GameObjects.Sprite | null = null
 
   private keys!: {
     up: Phaser.Input.Keyboard.Key
@@ -72,14 +74,14 @@ export class CharacterSelectScene extends Phaser.Scene {
     this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x111111)
 
     // Title
-    this.add.text(GAME_WIDTH / 2, 50, 'SELECT YOUR FIGHTER', {
-      fontFamily: 'Arial Black, Arial',
-      fontSize: '36px',
-      fontStyle: 'bold',
+    const title = this.add.text(GAME_WIDTH / 2, 50, 'SELECT YOUR FIGHTER', {
+      fontFamily: ARCADE_FONT,
+      fontSize: '26px',
       color: '#FF4500',
       stroke: '#000000',
       strokeThickness: 4,
     }).setOrigin(0.5, 0.5)
+    addTitleGlow(title)
 
     // Draw 3x3 grid of portraits
     for (let row = 0; row < GRID_ROWS; row++) {
@@ -91,9 +93,14 @@ export class CharacterSelectScene extends Phaser.Scene {
         const cx = GRID_START_X + col * GRID_SPACING_X
         const cy = GRID_START_Y + row * GRID_SPACING_Y
 
-        // Portrait background
-        const rect = this.add.rectangle(cx, cy, PORTRAIT_W, PORTRAIT_H, PORTRAIT_COLORS[charId] ?? 0x444444)
-        this.portraitRects.push(rect)
+        // Portrait — real art if available, else flat color + letter fallback
+        const hasPortrait = this.textures.exists(`${charId}_portrait`)
+        if (hasPortrait) {
+          this.add.image(cx, cy, `${charId}_portrait`).setDisplaySize(PORTRAIT_W, PORTRAIT_H)
+        } else {
+          const rect = this.add.rectangle(cx, cy, PORTRAIT_W, PORTRAIT_H, PORTRAIT_COLORS[charId] ?? 0x444444)
+          this.portraitRects.push(rect)
+        }
 
         // Selection border (hidden by default)
         const border = this.add.rectangle(cx, cy, PORTRAIT_W + 6, PORTRAIT_H + 6, 0xffffff)
@@ -112,19 +119,20 @@ export class CharacterSelectScene extends Phaser.Scene {
           strokeThickness: 2,
         }).setOrigin(0.5, 0)
 
-        // Simple silhouette text in portrait
-        this.add.text(cx, cy, stats?.displayName?.[0] ?? '?', {
-          fontFamily: 'Arial Black, Arial',
-          fontSize: '48px',
-          fontStyle: 'bold',
-          color: '#ffffff',
-        }).setOrigin(0.5, 0.5).setAlpha(0.3)
+        // Simple silhouette text in portrait (fallback only)
+        if (!hasPortrait) {
+          this.add.text(cx, cy, stats?.displayName?.[0] ?? '?', {
+            fontFamily: 'Arial Black, Arial',
+            fontSize: '48px',
+            fontStyle: 'bold',
+            color: '#ffffff',
+          }).setOrigin(0.5, 0.5).setAlpha(0.3)
+        }
       }
     }
 
     // Right side preview panel background
-    this.add.rectangle(1050, 360, 300, 520, 0x1a1a2e)
-      .setStrokeStyle(2, 0xFF4500)
+    drawGradientPanel(this, 1050, 360, 300, 520, 0x1a1a2e, 0x05050a, 0xFF4500)
 
     this.previewName = this.add.text(1050, 130, '', {
       fontFamily: 'Arial Black, Arial',
@@ -212,6 +220,10 @@ export class CharacterSelectScene extends Phaser.Scene {
       esc: 'ESC',
     }) as typeof this.keys
 
+    // Arcade-cabinet screen treatment
+    addVignette(this)
+    addScanlineOverlay(this)
+
     this.refreshUI()
   }
 
@@ -251,6 +263,27 @@ export class CharacterSelectScene extends Phaser.Scene {
     }
 
     this.previewIntro.setText(`"${stats.introLine}"`)
+
+    // Live preview art: idle pose preferred, portrait as fallback, hidden if neither exists
+    this.previewArt?.destroy()
+    this.previewArt = null
+
+    const idleFrames = getPoseFrames(this, charId, 'idle')
+    if (idleFrames.length > 0) {
+      const sprite = this.add.sprite(1050, 480, idleFrames[0]).setOrigin(0.5, 1)
+      applyArtScale(sprite, 180)
+      if (idleFrames.length > 1) {
+        const animKey = `${charId}_select_idle`
+        if (!this.anims.exists(animKey)) {
+          this.anims.create({ key: animKey, frames: idleFrames.map(key => ({ key })), frameRate: 4, repeat: -1 })
+        }
+        sprite.play(animKey)
+      }
+      this.previewArt = sprite
+    } else if (this.textures.exists(`${charId}_portrait`)) {
+      const sprite = this.add.sprite(1050, 410, `${charId}_portrait`).setDisplaySize(160, 160)
+      this.previewArt = sprite
+    }
   }
 
   private getArchetypeLabel(id: string, speed: number, weight: number): string {
@@ -320,15 +353,11 @@ export class CharacterSelectScene extends Phaser.Scene {
     const others = CHARACTER_ORDER.filter(id => id !== playerCharId)
     const aiCharId = others[Math.floor(Math.random() * others.length)]
 
-    // Pick a random stage
-    const stage = stageData[Math.floor(Math.random() * stageData.length)]
-
     this.registry.set('playerCharId', playerCharId)
     this.registry.set('aiCharId', aiCharId)
     this.registry.set('difficulty', difficulty)
-    this.registry.set('stageId', stage.id)
 
     this.scene.stop('MainMenuScene')
-    this.scene.start('FightScene')
+    this.scene.start('StageSelectScene')
   }
 }

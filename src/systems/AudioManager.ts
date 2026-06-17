@@ -70,8 +70,21 @@ export class AudioManager {
     }
   }
 
-  triggerVoiceLine(text: string, x: number, y: number): void {
-    this.scene.events.emit('voice-line', { text, x, y });
+  playVoiceClip(key: string, onComplete?: () => void): void {
+    if (!this.scene.cache.audio.has(key)) {
+      onComplete?.();
+      return;
+    }
+    try {
+      const clip = this.scene.sound.add(key, { volume: this.sfxVolume });
+      clip.once('complete', () => {
+        clip.destroy();
+        onComplete?.();
+      });
+      clip.play();
+    } catch {
+      onComplete?.();
+    }
   }
 
   setMusicVolume(v: number): void {

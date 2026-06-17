@@ -13,8 +13,9 @@ import { DebugOverlay } from '../utils/DebugOverlay'
 import { characterData } from '../data/characterData'
 import { aiProfiles } from '../data/aiProfiles'
 import { stageData } from '../data/stageData'
-import { RawInput, AIDifficulty, MoveDefinition, StageData } from '../types'
+import { RawInput, AIDifficulty, MoveDefinition } from '../types'
 import * as C from '../constants'
+import { createStageRenderHandle, drawStage, StageRenderHandle } from '../utils/StageRenderer'
 
 export class FightScene extends Phaser.Scene {
   private playerChar!: BaseCharacter
@@ -30,10 +31,9 @@ export class FightScene extends Phaser.Scene {
   private debugOverlay!: DebugOverlay
   private keys!: { [key: string]: Phaser.Input.Keyboard.Key }
   private currentFrame = 0
-  private stageGraphics!: Phaser.GameObjects.Graphics
+  private stageHandle!: StageRenderHandle
   private hitStopTimer = 0
   private isHitStop = false
-  private pendingVoiceLine: { char: BaseCharacter; index: number } | null = null
   private isPaused = false
   private pauseOverlay: Phaser.GameObjects.Container | null = null
 
@@ -52,8 +52,8 @@ export class FightScene extends Phaser.Scene {
     const stage = stageData.find(s => s.id === stageId) ?? stageData[0]
 
     // Draw stage background
-    this.stageGraphics = this.add.graphics()
-    this.drawStage(stage)
+    this.stageHandle = createStageRenderHandle(this)
+    drawStage(this, this.stageHandle, stage)
 
     // Create characters
     this.playerChar = createCharacter(playerCharId, this, 320, C.FLOOR_Y, true)
@@ -160,47 +160,6 @@ export class FightScene extends Phaser.Scene {
     this.time.delayedCall(200, () => {
       this.events.emit('round-start', { roundNumber: this.roundManager.currentRound, round: this.roundManager.currentRound })
     })
-  }
-
-  private drawStage(stage: StageData): void {
-    const g = this.stageGraphics
-    g.clear()
-
-    // Sky gradient simulation (two-tone)
-    g.fillStyle(stage.skyColor, 1)
-    g.fillRect(0, 0, 1280, 400)
-
-    // Darker mid-ground band
-    const midColor = Phaser.Display.Color.IntegerToColor(stage.skyColor)
-    midColor.darken(20)
-    g.fillStyle(midColor.color, 1)
-    g.fillRect(0, 380, 1280, 120)
-
-    // Ground
-    g.fillStyle(stage.groundColor, 1)
-    g.fillRect(0, C.FLOOR_Y, 1280, 720 - C.FLOOR_Y)
-
-    // Ground accent stripe
-    g.fillStyle(stage.accentColor, 1)
-    g.fillRect(0, C.FLOOR_Y, 1280, 8)
-
-    // Simple background pillars/elements for depth
-    const pillarColor = Phaser.Display.Color.IntegerToColor(stage.skyColor)
-    pillarColor.darken(30)
-    g.fillStyle(pillarColor.color, 0.6)
-    for (let i = 0; i < 5; i++) {
-      const px = 100 + i * 280
-      g.fillRect(px, 200, 40, 180)
-    }
-
-    // Floor line
-    g.lineStyle(3, 0xffffff, 0.8)
-    g.lineBetween(C.STAGE_LEFT_BOUND, C.FLOOR_Y, C.STAGE_RIGHT_BOUND, C.FLOOR_Y)
-
-    // Stage edge shadows
-    g.fillStyle(0x000000, 0.3)
-    g.fillRect(0, 0, C.STAGE_LEFT_BOUND, 720)
-    g.fillRect(C.STAGE_RIGHT_BOUND, 0, 1280 - C.STAGE_RIGHT_BOUND, 720)
   }
 
   update(_time: number, delta: number): void {
@@ -314,9 +273,6 @@ export class FightScene extends Phaser.Scene {
       this.debugOverlay.toggle()
       this.hitboxSystem.toggleDebug(this)
     }
-
-    // Random voice lines
-    this.maybeFireVoiceLine()
   }
 
   private readPlayerInput(): RawInput {
@@ -619,14 +575,6 @@ export class FightScene extends Phaser.Scene {
         const impactY = attacker.y - 100
         this.spawnHitSpark(impactX, impactY, isHeavy, attacker.color)
       }
-
-      // Voice line chance on hit
-      if (result === 'hit' && Math.random() < 0.15) {
-        this.pendingVoiceLine = {
-          char: attacker,
-          index: Math.floor(Math.random() * 3),
-        }
-      }
     }
   }
 
@@ -789,23 +737,5 @@ export class FightScene extends Phaser.Scene {
       frameOffset = totalEnd
     }
     return 0
-  }
-
-  private maybeFireVoiceLine(): void {
-    if (this.pendingVoiceLine) {
-      const { char, index } = this.pendingVoiceLine
-      const lines = char.getVoiceLines()
-      const text = lines[index] ?? lines[0]
-      this.events.emit('voice-line', { text, x: char.x, y: char.y - 180, color: char.color })
-      this.pendingVoiceLine = null
-    }
-
-    // Random ambient voice lines (rare — ~0.2% per frame)
-    if (Math.random() < 0.002) {
-      const char = Math.random() < 0.5 ? this.playerChar : this.aiChar
-      const lines = char.getVoiceLines()
-      const text = lines[Math.floor(Math.random() * lines.length)]
-      this.events.emit('voice-line', { text, x: char.x, y: char.y - 180, color: char.color })
-    }
   }
 }

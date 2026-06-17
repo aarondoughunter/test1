@@ -1,7 +1,9 @@
 import Phaser from 'phaser'
-import { GAME_WIDTH, GAME_HEIGHT } from '../constants'
+import { GAME_WIDTH, GAME_HEIGHT, ARCADE_FONT, ART_TARGET_HEIGHT } from '../constants'
 import { AudioManager } from '../systems/AudioManager'
 import { characterData } from '../data/characterData'
+import { addScanlineOverlay, addVignette, addTitleGlow } from '../utils/ArcadeChrome'
+import { getPoseFrames, applyArtScale } from '../systems/CharacterArtRegistry'
 
 const MENU_ITEMS = ['REMATCH', 'CHARACTER SELECT', 'MAIN MENU']
 const MENU_Y = [500, 550, 600]
@@ -45,14 +47,19 @@ export class VictoryScene extends Phaser.Scene {
       ? (playerStats?.color ?? '#ffffff')
       : (aiStats?.color ?? '#ffffff')
 
-    this.add.text(GAME_WIDTH / 2, 200, winnerText, {
-      fontFamily: 'Arial Black, Arial',
-      fontSize: '64px',
-      fontStyle: 'bold',
+    const winnerTitle = this.add.text(GAME_WIDTH / 2, 200, winnerText, {
+      fontFamily: ARCADE_FONT,
+      fontSize: '44px',
       color: winnerColor,
       stroke: '#000000',
       strokeThickness: 6,
     }).setOrigin(0.5, 0.5)
+    addTitleGlow(winnerTitle, isPlayerWin ? 0x22cc22 : 0xdd2222)
+
+    // Victory flourish: camera punch-in + brief screen flash
+    this.cameras.main.zoomTo(1.15, 800, 'Sine.easeOut')
+    const flash = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0xffffff, 0.6)
+    this.tweens.add({ targets: flash, alpha: 0, duration: 400, onComplete: () => flash.destroy() })
 
     // Winning character name
     const winnerName = isPlayerWin
@@ -67,9 +74,25 @@ export class VictoryScene extends Phaser.Scene {
       strokeThickness: 3,
     }).setOrigin(0.5, 0.5)
 
+    // Winner pose art (falls back to text-only if not yet provided)
+    const winnerCharId = isPlayerWin ? playerCharId : aiCharId
+    const victoryFrames = getPoseFrames(this, winnerCharId, 'victory')
+    if (victoryFrames.length > 0) {
+      const pose = this.add.sprite(GAME_WIDTH / 2 - 280, GAME_HEIGHT / 2 + 40, victoryFrames[0]).setOrigin(0.5, 1)
+      applyArtScale(pose, ART_TARGET_HEIGHT)
+      if (victoryFrames.length > 1) {
+        const animKey = `${winnerCharId}_victory_cinematic`
+        if (!this.anims.exists(animKey)) {
+          this.anims.create({ key: animKey, frames: victoryFrames.map(key => ({ key })), frameRate: 4, repeat: -1 })
+        }
+        pose.play(animKey)
+      }
+    }
+
     // Victory voice line
     const winnerCharStats = isPlayerWin ? playerStats : aiStats
     const victoryLine = winnerCharStats?.victoryLine ?? winnerCharStats?.voiceLines?.[0] ?? '...'
+    this.audioManager.playVoiceClip(`${winnerCharId}_victory`)
 
     this.add.text(GAME_WIDTH / 2, 340, `"${victoryLine}"`, {
       fontFamily: 'Arial',
@@ -126,6 +149,10 @@ export class VictoryScene extends Phaser.Scene {
 
     // Play victory music
     this.audioManager.playMusic('victory_theme')
+
+    // Arcade-cabinet screen treatment
+    addVignette(this)
+    addScanlineOverlay(this)
   }
 
   private updateCursor(): void {

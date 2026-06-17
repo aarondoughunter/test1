@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
-import { GAME_WIDTH, GAME_HEIGHT } from '../constants'
+import { GAME_WIDTH, GAME_HEIGHT, ARCADE_FONT } from '../constants'
 import { AudioManager } from '../systems/AudioManager'
+import { addScanlineOverlay, addVignette, drawGradientPanel, addTitleGlow, addChaseLightBorder } from '../utils/ArcadeChrome'
 
 type MenuItem = 'PLAY' | 'OPTIONS' | 'CREDITS'
 
@@ -43,15 +44,18 @@ export class MainMenuScene extends Phaser.Scene {
     // Dark background
     this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x111111)
 
+    // Chase-light marquee border around the whole screen
+    addChaseLightBorder(this, GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH - 20, GAME_HEIGHT - 20)
+
     // Title
-    this.add.text(GAME_WIDTH / 2, 180, 'FAMILY FIGHTER', {
-      fontFamily: 'Arial Black, Arial',
-      fontSize: '64px',
-      fontStyle: 'bold',
+    const title = this.add.text(GAME_WIDTH / 2, 180, 'FAMILY FIGHTER', {
+      fontFamily: ARCADE_FONT,
+      fontSize: '48px',
       color: '#FF4500',
       stroke: '#000000',
       strokeThickness: 6,
     }).setOrigin(0.5, 0.5)
+    addTitleGlow(title)
 
     // Subtitle
     this.add.text(GAME_WIDTH / 2, 260, "Who's the best in the family?", {
@@ -81,14 +85,13 @@ export class MainMenuScene extends Phaser.Scene {
     // Controls panel
     const panelX = GAME_WIDTH / 2
     const panelY = 630
-    this.add.rectangle(panelX, panelY, 900, 130, 0x000000, 0.5)
-      .setStrokeStyle(1, 0x444444)
+    drawGradientPanel(this, panelX, panelY, 900, 130, 0x1a1a2e, 0x05050a, 0x444444)
 
     this.add.text(panelX, panelY - 48, 'CONTROLS', {
-      fontFamily: 'Arial Black, Arial',
-      fontSize: '14px',
+      fontFamily: ARCADE_FONT,
+      fontSize: '12px',
       color: '#FF4500',
-      letterSpacing: 4,
+      letterSpacing: 2,
     }).setOrigin(0.5, 0.5)
 
     const col1 = [
@@ -127,6 +130,10 @@ export class MainMenuScene extends Phaser.Scene {
       color: '#dddddd',
       lineSpacing: 6,
     }).setOrigin(0, 0.5)
+
+    // Arcade-cabinet screen treatment
+    addVignette(this)
+    addScanlineOverlay(this)
 
     this.updateCursor()
 
@@ -211,12 +218,11 @@ export class MainMenuScene extends Phaser.Scene {
 
   private showOptions(): void {
     this.inOverlay = true
-    const bg = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, 500, 300, 0x000000, 0.85)
-    bg.setStrokeStyle(2, 0xFF4500)
+    const bg = drawGradientPanel(this, 0, 0, 500, 300, 0x1a1a2e, 0x05050a, 0xFF4500)
 
     const title = this.add.text(0, -110, 'OPTIONS', {
-      fontFamily: 'Arial Black, Arial',
-      fontSize: '28px',
+      fontFamily: ARCADE_FONT,
+      fontSize: '20px',
       color: '#FF4500',
     }).setOrigin(0.5, 0.5)
 
@@ -258,8 +264,7 @@ export class MainMenuScene extends Phaser.Scene {
 
   private showCredits(): void {
     this.inOverlay = true
-    const bg = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, 600, 200, 0x000000, 0.85)
-    bg.setStrokeStyle(2, 0xFF4500)
+    const bg = drawGradientPanel(this, 0, 0, 600, 200, 0x1a1a2e, 0x05050a, 0xFF4500)
 
     const text = this.add.text(0, -20, 'A family game for the ages.', {
       fontFamily: 'Arial',

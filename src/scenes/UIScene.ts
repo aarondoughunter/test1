@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import { GAME_WIDTH, ROUNDS_TO_WIN } from '../constants'
-import { VoiceLineDisplay } from '../systems/VoiceLineDisplay'
+import { shadeColor } from '../utils/ArcadeChrome'
 
 export class UIScene extends Phaser.Scene {
   // Graphics for health/meter bars
@@ -31,9 +31,6 @@ export class UIScene extends Phaser.Scene {
   // Low HP pulse
   private pulsePhase = 0
   private lowHpOverlay!: Phaser.GameObjects.Graphics
-
-  // Voice lines
-  private voiceLineDisplay!: VoiceLineDisplay
 
   constructor() {
     super({ key: 'UIScene' })
@@ -98,9 +95,6 @@ export class UIScene extends Phaser.Scene {
     this.lowHpOverlay = this.add.graphics()
     this.lowHpOverlay.setDepth(5)
     this.lowHpOverlay.setAlpha(0)
-
-    // Voice line display
-    this.voiceLineDisplay = new VoiceLineDisplay(this)
 
     // Hook into FightScene events
     this.listenToFightScene()
@@ -172,10 +166,6 @@ export class UIScene extends Phaser.Scene {
         const msg = data.winner === 'player' ? 'YOU WIN!' : 'AI WINS!'
         this.showAnnouncement(msg, 3000, data.winner === 'player' ? '#22cc22' : '#dd2222')
       })
-
-      fightScene.events.on('voice-line', (data: { text: string; x: number; y: number; color?: string }) => {
-        this.voiceLineDisplay.show(data.text, data.x, data.y, data.color)
-      })
     }
 
     tryConnect()
@@ -223,6 +213,32 @@ export class UIScene extends Phaser.Scene {
     })
   }
 
+  // Darker housing + gradient fill + thin glossy highlight strip around a fill-percentage bar.
+  private drawBar(x: number, y: number, w: number, h: number, fillW: number, fillFromRight: boolean, baseColor: number, trackColor: number, borderColor: number): void {
+    // Housing bevel (sits behind the track, slightly larger)
+    this.barGraphics.fillStyle(0x000000, 0.6)
+    this.barGraphics.fillRect(x - 3, y - 3, w + 6, h + 6)
+
+    // Track
+    this.barGraphics.fillStyle(trackColor, 1)
+    this.barGraphics.fillRect(x, y, w, h)
+
+    if (fillW > 0) {
+      const fillX = fillFromRight ? x + w - fillW : x
+      const lightColor = shadeColor(baseColor, 0.35)
+      const darkColor = shadeColor(baseColor, -0.25)
+      this.barGraphics.fillGradientStyle(lightColor, lightColor, darkColor, darkColor, 1)
+      this.barGraphics.fillRect(fillX, y, fillW, h)
+
+      // Glossy highlight strip across the top third of the fill
+      this.barGraphics.fillStyle(0xffffff, 0.25)
+      this.barGraphics.fillRect(fillX, y + 1, fillW, Math.max(1, h / 3))
+    }
+
+    this.barGraphics.lineStyle(1, borderColor, 1)
+    this.barGraphics.strokeRect(x, y, w, h)
+  }
+
   update(): void {
     this.pulsePhase += 0.15
     this.barGraphics.clear()
@@ -231,52 +247,32 @@ export class UIScene extends Phaser.Scene {
     const p2Pct = this.p2HealthMax > 0 ? this.p2Health / this.p2HealthMax : 0
 
     // --- P1 health bar (x=20, y=30, w=400, h=24) ---
-    this.barGraphics.fillStyle(0x333333, 1)
-    this.barGraphics.fillRect(20, 30, 400, 24)
     const p1FillW = Math.round(Math.max(0, p1Pct) * 400)
     let p1BarColor = this.getBarColor(p1Pct)
     if (p1Pct < 0.25) {
       const pulse = 0.5 + 0.5 * Math.sin(this.pulsePhase * 8)
       p1BarColor = pulse > 0.5 ? 0xff2222 : 0xff6666
     }
-    this.barGraphics.fillStyle(p1BarColor, 1)
-    this.barGraphics.fillRect(20, 30, p1FillW, 24)
-    this.barGraphics.lineStyle(1, 0x888888, 1)
-    this.barGraphics.strokeRect(20, 30, 400, 24)
+    this.drawBar(20, 30, 400, 24, p1FillW, false, p1BarColor, 0x333333, 0x888888)
 
     // --- AI health bar (x=860, y=30, w=400, h=24) — fills right to left ---
-    this.barGraphics.fillStyle(0x333333, 1)
-    this.barGraphics.fillRect(860, 30, 400, 24)
     const p2FillW = Math.round(Math.max(0, p2Pct) * 400)
     let p2BarColor = this.getBarColor(p2Pct)
     if (p2Pct < 0.25) {
       const pulse = 0.5 + 0.5 * Math.sin(this.pulsePhase * 8)
       p2BarColor = pulse > 0.5 ? 0xff2222 : 0xff6666
     }
-    this.barGraphics.fillStyle(p2BarColor, 1)
-    this.barGraphics.fillRect(860 + 400 - p2FillW, 30, p2FillW, 24)
-    this.barGraphics.lineStyle(1, 0x888888, 1)
-    this.barGraphics.strokeRect(860, 30, 400, 24)
+    this.drawBar(860, 30, 400, 24, p2FillW, true, p2BarColor, 0x333333, 0x888888)
 
     // --- P1 meter bar (x=20, y=60, w=400, h=10) ---
     const p1MeterPct = Math.min(1, this.p1Meter / 100)
-    this.barGraphics.fillStyle(0x222244, 1)
-    this.barGraphics.fillRect(20, 60, 400, 10)
     const p1MeterW = Math.round(p1MeterPct * 400)
-    this.barGraphics.fillStyle(0x4444ff, 1)
-    this.barGraphics.fillRect(20, 60, p1MeterW, 10)
-    this.barGraphics.lineStyle(1, 0x666699, 1)
-    this.barGraphics.strokeRect(20, 60, 400, 10)
+    this.drawBar(20, 60, 400, 10, p1MeterW, false, 0x4444ff, 0x222244, 0x666699)
 
     // --- AI meter bar (x=860, y=60, w=400, h=10) — fills right to left ---
     const p2MeterPct = Math.min(1, this.p2Meter / 100)
-    this.barGraphics.fillStyle(0x222244, 1)
-    this.barGraphics.fillRect(860, 60, 400, 10)
     const p2MeterW = Math.round(p2MeterPct * 400)
-    this.barGraphics.fillStyle(0x4444ff, 1)
-    this.barGraphics.fillRect(860 + 400 - p2MeterW, 60, p2MeterW, 10)
-    this.barGraphics.lineStyle(1, 0x666699, 1)
-    this.barGraphics.strokeRect(860, 60, 400, 10)
+    this.drawBar(860, 60, 400, 10, p2MeterW, true, 0x4444ff, 0x222244, 0x666699)
 
     // --- Low HP vignette overlay ---
     this.lowHpOverlay.clear()
