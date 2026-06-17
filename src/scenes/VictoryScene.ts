@@ -184,7 +184,7 @@ export class VictoryScene extends Phaser.Scene {
     this.audioManager.stopMusic(0)
     switch (this.cursorIndex) {
       case 0: // REMATCH
-        this.scene.start('FightScene')
+        this.scene.start('IntroCinematicScene')
         break
       case 1: // CHARACTER SELECT
         this.scene.start('CharacterSelectScene')

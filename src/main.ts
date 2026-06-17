@@ -4,6 +4,8 @@ import { BootScene } from './scenes/BootScene'
 import { PreloadScene } from './scenes/PreloadScene'
 import { MainMenuScene } from './scenes/MainMenuScene'
 import { CharacterSelectScene } from './scenes/CharacterSelectScene'
+import { StageSelectScene } from './scenes/StageSelectScene'
+import { IntroCinematicScene } from './scenes/IntroCinematicScene'
 import { FightScene } from './scenes/FightScene'
 import { UIScene } from './scenes/UIScene'
 import { VictoryScene } from './scenes/VictoryScene'
@@ -26,7 +28,7 @@ const config: Phaser.Types.Core.GameConfig = {
     default: 'arcade',
     arcade: { gravity: { x: 0, y: 0 }, debug: false },
   },
-  scene: [BootScene, PreloadScene, MainMenuScene, CharacterSelectScene, FightScene, UIScene, VictoryScene],
+  scene: [BootScene, PreloadScene, MainMenuScene, CharacterSelectScene, StageSelectScene, IntroCinematicScene, FightScene, UIScene, VictoryScene],
 }
 
 new Phaser.Game(config)
