@@ -6,6 +6,28 @@ controlHint = 'Tap';
 
 const MAX_RADIUS = 50;
 const AIM_DEADZONE = 12;
+const CANVAS_HEIGHT_FRACTION = 0.8;
+
+// Size the canvas explicitly in JS rather than relying on CSS
+// aspect-ratio + dvh, which renders inconsistently across Safari
+// versions. Recomputed whenever the viewport changes.
+function resizeCanvas() {
+  const vv = window.visualViewport;
+  const vw = vv ? vv.width : window.innerWidth;
+  const vh = (vv ? vv.height : window.innerHeight) * CANVAS_HEIGHT_FRACTION;
+  const ratio = CW / CH;
+  let w = vw, h = w / ratio;
+  if (h > vh) {
+    h = vh;
+    w = h * ratio;
+  }
+  canvas.style.width = `${Math.floor(w)}px`;
+  canvas.style.height = `${Math.floor(h)}px`;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 150));
+if (window.visualViewport) window.visualViewport.addEventListener('resize', resizeCanvas);
 
 const moveBase = document.getElementById('moveBase');
 const moveKnob = document.getElementById('moveKnob');
